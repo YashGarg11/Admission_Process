@@ -1,0 +1,13 @@
+# Node.js
+node_modules/
+.env
+.DS_Store
+npm-debug.log*
+
+# Optional: logs & IDE stuff
+logs
+*.log
+*.zip
+.vscode/
+.idea/
+*.swp
