@@ -3,12 +3,12 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, mobile, address, gender, dob } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: "User already exists" });
 
-    const newUser = await User.create({ name, email, password }); // password will be auto-hashed
+    const newUser = await User.create({ name, email, password, mobile, address, gender, dob, });
 
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -21,6 +21,11 @@ exports.registerUser = async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
+        mobile: newUser.mobile,
+        address: newUser.address,
+        gender: newUser.address,
+        dob: newUser.dob,
+        token
       },
       token,
     });
