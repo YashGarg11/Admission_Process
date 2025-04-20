@@ -1,15 +1,20 @@
+// routes/applicationRoutes.js
 const express = require("express");
 const router = express.Router();
 const { protect } = require("../middleware/authMiddleware");
-const {
-  submitApplication,
-  getMyApplication,
-} = require("../controllers/admissionController");
+const { submitPersonalDetails, submitAcademicDetails } = require("../controllers/admissionController");
 
-// Route to submit a new application
-router.post("/", protect, submitApplication);
+const { generateIDCard } = require("../controllers/paymentGateway");
+const upload = require("../middleware/uploadMideeleware");  // Multer for file uploads
 
-// Route to get the current user's application
-router.get("/my", protect, getMyApplication);
+// Step 1: Submit Personal Details and Counseling Letter (PDF)
+router.post("/personal-details", protect, upload.single("counselingLetter"), submitPersonalDetails);
+
+router.post("/academic-details", protect, upload.array("documents"), submitAcademicDetails);
+
+
+
+router.get("/generate-idcard/:id", protect, generateIDCard);
+
 
 module.exports = router;

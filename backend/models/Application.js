@@ -1,30 +1,18 @@
+// models/Application.js
 const mongoose = require('mongoose');
-const applicationSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true
-  },
-  course: {
-    type: String,
-    required: true
 
-  },
-  marks: {
+const CounsellingSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  mobile: { type: String, required: true, match: [/^\d{10}$/, "Mobile number must be 10 digits"] },
+  counselingLetter: { type: String, required: true },
+  address: { type: String, required: true },
+  status: { type: String, default: "pending" },
+  idCardUrl: {
     type: String,
-    required: true
+    default: null
   },
-  document: {
-    type: String
-  },
-  status: {
-    type: String,
-    enum: ["pending", "approved", "rejected"],
-    default: "pending"
-  }
-},
-  {
-    timestamps: true
-  });
+}, { timestamps: true });
 
-module.exports = mongoose.model("Application", applicationSchema);
+module.exports = mongoose.model("Application", CounsellingSchema);
