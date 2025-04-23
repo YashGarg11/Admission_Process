@@ -1,7 +1,7 @@
 const PDFDocument = require("pdfkit");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
-const Application = require("../controllers/admissionController");
+const Application = require("../models/Application");
 
 exports.generateIDCard = async (req, res) => {
   try {

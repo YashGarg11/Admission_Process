@@ -9,6 +9,7 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 connectDB();
 app.get("/", (req, res) => {
   res.send("College Admission API Running");
