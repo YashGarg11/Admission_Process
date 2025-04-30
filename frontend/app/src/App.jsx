@@ -1,24 +1,31 @@
-import CollegeNavbar from './components/navbar';
-import Notice from './components/notice_board';
+import React from 'react';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import AcademicDetailsForm from './components/academic_details';
+import AdmissionDashboard from './components/dashboard';
+import PersonalDetailsForm from './components/document_personal';
+import HomePage from './components/home_page';
+import LoginPage from './components/login_page';
+import RegisterPage from './components/Register_Page';
 import './index.css';
 
-function App() {
-  // Center-focused path with smaller horizontal range
-  const pathData = "M300,250 C350,350 400,350 450,250";
-
+const App = () => {
   return (
-    <div className="min-h-screen w-full bg-black">
-      <CollegeNavbar />
-      <div className="pt-[80px] min-h-screen w-full flex flex-col lg:flex-row items-center justify-center gap-8 px-4 py-8 overflow-x-hidden">
-        <div className="flex-1 flex justify-center">
-          <Notice pathData={pathData} text="Direct Admission" />
-        </div>
-        <div className="flex-1 flex justify-center">
-          <Notice pathData={pathData} text="Counselling" />
-        </div>
+    <Router>
+      <div className="app">
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={<AdmissionDashboard></AdmissionDashboard>} />
+          <Route path="/document_personal" element={<PersonalDetailsForm />} />
+          <Route path="/admission/academic-details/:applicationId" element={<AcademicDetailsForm />} />
+
+
+        </Routes>
       </div>
-    </div>
+    </Router>
   );
-}
+};
 
 export default App;

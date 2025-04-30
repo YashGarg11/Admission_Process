@@ -36,20 +36,17 @@ export default function Notice({ pathData, text }) {
         className="w-full h-auto"
         viewBox="0 0 700 700"
         preserveAspectRatio="xMidYMid meet"
-        style={{ minWidth: "400px", minHeight: "400px" }}
+        style={{ minWidth: "600px", minHeight: "320px" }}
       >
-        {/* Visualize path for debugging - can be removed later */}
         <path
           id={uniqueId}
           d={pathData}
-          stroke="#333333"
-          strokeWidth="1"
-          strokeDasharray="5,5"
+          stroke="transparent"
+          strokeWidth="2"
           fill="transparent"
-          transform="translate(0, 50)"
         />
 
-        <g ref={notice}>
+        <g ref={notice} transform="translate(250, 250) scale(1.8)">
           {/* Ropes */}
           <circle cx="300" cy="50" r="6" fill="white" />
           <line x1="300" y1="50" x2="253" y2="112" stroke="white" strokeWidth="2" />

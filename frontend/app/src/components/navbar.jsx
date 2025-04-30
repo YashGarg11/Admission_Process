@@ -14,7 +14,7 @@ export default function CollegeNavbar() {
           smooth={true}
           duration={500}
         >
-          📘 ABC College
+          ABC College
         </Link>
 
         <button

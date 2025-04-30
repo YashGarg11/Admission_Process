@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
+
   },
   email: {
     type: String,
@@ -17,6 +18,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  confirm_Password: {
+    type: String,
+    required: false,
+
+  },
+
   mobile: {
     type: String,
     required: function () {
@@ -54,6 +61,10 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'admin'],
     default: 'student'
   },
+  googleId: String,
+  githubId: String,
+  facebookId: String,
+  avatar: String,
 }, { timestamps: true });
 
 // Password hashing

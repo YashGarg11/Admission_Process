@@ -55,6 +55,16 @@ exports.generateIDCard = async (req, res) => {
     doc.text(`Course: ${application.course}`);
     doc.text(`Mobile: ${application.mobile}`);
     doc.text(`Email: ${application.email}`);
+    
+    // Add document information if available
+    if (application.academicDocuments && application.academicDocuments.length > 0) {
+      doc.moveDown().text("Submitted Documents:", { underline: true });
+      application.academicDocuments.forEach((doc, index) => {
+        const docName = doc.name || `Document ${index + 1}`;
+        doc.text(`- ${docName}`);
+      });
+    }
+    
     doc.end();
 
   } catch (err) {

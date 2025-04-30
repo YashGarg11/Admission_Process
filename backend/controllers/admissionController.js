@@ -1,17 +1,15 @@
 const Application = require("../models/Application");
 
 exports.submitPersonalDetails = async (req, res) => {
-
-
   try {
     const { name, email, mobile, address } = req.body;
-
+    
     // Trim all fields to remove extra spaces
     const trimmedName = name ? name.trim() : '';
     const trimmedEmail = email ? email.trim() : '';
     const trimmedMobile = mobile ? mobile.trim() : '';
     const trimmedAddress = address ? address.trim() : '';
-
+    
     // Check if required fields are provided
     if (!trimmedName || !trimmedEmail || !trimmedMobile || !trimmedAddress) {
       return res.status(400).json({
@@ -19,8 +17,7 @@ exports.submitPersonalDetails = async (req, res) => {
         details: "Name, email, mobile, and address are required"
       });
     }
-
-
+    
     // Check if file was uploaded
     if (!req.file) {
       return res.status(400).json({
@@ -69,9 +66,9 @@ exports.submitPersonalDetails = async (req, res) => {
 };
 exports.submitAcademicDetails = async (req, res) => {
   try {
-    const { course } = req.body;
-    let documentNames = req.body.documentName;
-
+    const { course, documentNames } = req.body;
+    
+    // Validate course
     if (!course) {
       return res.status(400).json({
         message: "Course selection is required"
@@ -84,30 +81,33 @@ exports.submitAcademicDetails = async (req, res) => {
       });
     }
 
-    // Ensure documentNames is always an array
-    if (!Array.isArray(documentNames)) {
-      documentNames = [documentNames];
-    }
-
-    // Check if names match number of uploaded files
-    if (documentNames.length !== req.files.length) {
+    // Validate document names
+    if (!documentNames) {
       return res.status(400).json({
-        message: "Number of document names and files must match"
+        message: "Document names are required for each file"
       });
     }
-
-    // Map files and names into the documents array
+    
+    // Convert to array if it's a single value
+    const namesArray = Array.isArray(documentNames) ? documentNames : [documentNames];
+    
+    // Check if names match number of uploaded files
+    if (namesArray.length !== req.files.length) {
+      return res.status(400).json({
+        message: "Number of document names must match number of files",
+        details: `You uploaded ${req.files.length} files but provided ${namesArray.length} names`
+      });
+    }
+    
+    // Create documents array with paths and names
     const documents = req.files.map((file, index) => ({
       path: file.path,
-      name: documentNames[index],
+      name: namesArray[index]
     }));
 
-    // Log the documents array to make sure it's correct
-    console.log('Documents:', documents);
-
-    const application = await Application.findOne({
-      user: req.user._id,
-      status: "pending"
+    const application = await Application.findOne({ 
+      user: req.user._id, 
+      status: "pending" 
     });
 
     if (!application) {
@@ -116,7 +116,6 @@ exports.submitAcademicDetails = async (req, res) => {
       });
     }
 
-    // Save the documents array correctly
     application.course = course;
     application.academicDocuments = documents;
     await application.save();
@@ -130,8 +129,7 @@ exports.submitAcademicDetails = async (req, res) => {
     console.error("Error in submitAcademicDetails:", err);
     res.status(500).json({
       message: "Server error processing your academic details",
-      error: err.message
-
+      error: err.message 
     });
   }
 };

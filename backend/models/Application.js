@@ -1,9 +1,12 @@
 // models/Application.js
 const mongoose = require('mongoose');
+
+// Define a schema for academic documents that includes both path and name
 const academicDocumentSchema = new mongoose.Schema({
   path: { type: String, required: true },
   name: { type: String, required: true },
 });
+
 const CounsellingSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   name: { type: String, required: true },
@@ -12,8 +15,8 @@ const CounsellingSchema = new mongoose.Schema({
   counselingLetter: { type: String, required: true },
   address: { type: String, required: true },
   course: { type: String },
-  documentNames: { type: String },
-  academicDocuments: [{ type: String }],
+  // Use the academicDocumentSchema for storing documents with their names
+  academicDocuments: [academicDocumentSchema],
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: "pending" },
   idCardUrl: {
     type: String,

@@ -1,0 +1,202 @@
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Container styles */
+.home-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #ffffff, #93c5fd);
+  padding: 2.5rem 0;
+  display: flex;
+  align-items: center;
+  opacity: 1;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.center-content {
+  display: flex;
+  justify-content: center;
+}
+
+.main-content {
+  text-align: center;
+  max-width: 56rem;
+}
+
+/* Header section */
+.header-section {
+  margin-bottom: 2rem;
+  opacity: 1;
+  /* Explicitly set for GSAP from() */
+}
+
+.main-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.badge-container {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
+  display: inline-block;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.admissions-badge {
+  color: white;
+  background-color: #4f46e5;
+  background-opacity: 0.9;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Info section */
+.info-section {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 1.5rem 2.5rem;
+  border-radius: 1.5rem;
+  color: white;
+  margin-bottom: 2rem;
+  opacity: 1;
+  /* Explicitly set for GSAP from() */
+}
+
+.intro-text {
+  font-size: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.feature-card {
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.create-account {
+  background-color: #374151;
+  /* gray-700 */
+}
+
+.apply-online {
+  background-color: #ef4444;
+  /* red-500 */
+}
+
+.get-admission {
+  background-color: #10b981;
+  /* green-500 */
+}
+
+.icon {
+  font-size: 2.25rem;
+  margin-bottom: 1rem;
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.feature-desc {
+  font-size: 0.875rem;
+}
+
+/* Button section */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 1;
+  /* Explicitly set for GSAP from() */
+}
+
+.button-link {
+  width: 100%;
+  text-decoration: none;
+}
+
+.register-button,
+.login-button {
+  width: 100%;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.register-button {
+  background-color: white;
+  color: black;
+  border: none;
+}
+
+.register-button:hover {
+  background-color: #e5e7eb;
+  /* gray-200 */
+}
+
+.login-button {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.login-button:hover {
+  background-color: white;
+  color: black;
+}
+
+/* Media queries */
+@media (min-width: 768px) {
+  .main-title {
+    font-size: 3rem;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .action-buttons {
+    flex-direction: row;
+  }
+
+  .button-link {
+    width: auto;
+  }
+
+  .register-button,
+  .login-button {
+    width: auto;
+  }
+}
