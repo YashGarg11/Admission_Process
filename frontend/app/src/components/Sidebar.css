@@ -1,0 +1,9 @@
+.sidebar-link:hover {
+  background-color: #2e2e3e;
+  transition: background 0.3s ease;
+}
+
+.sidebar-link.active {
+  background-color: #444;
+  font-weight: bold;
+}

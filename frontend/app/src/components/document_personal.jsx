@@ -1,7 +1,14 @@
+import axios from 'axios';
 import { gsap } from "gsap";
 import { AlertCircle, ArrowRight, CheckCircle, FileText, Loader, Mail, MapPin, Phone, User } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import config from "../config";
+
+
+
+
+
 
 // Form validation helpers
 const validateEmail = (email) => {
@@ -15,7 +22,9 @@ const validateMobile = (mobile) => {
 };
 
 export default function PersonalDetailsForm() {
+
   const navigate = useNavigate();
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -29,7 +38,7 @@ export default function PersonalDetailsForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [applicationId, setApplicationId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("Your personal details have been saved.");
 
   // Refs for animations
   const formRef = useRef(null);
@@ -41,7 +50,6 @@ export default function PersonalDetailsForm() {
 
   // Initialize animations with fromTo
   useEffect(() => {
-    // No need to check for existing applications if backend endpoint doesn't exist
     const tl = gsap.timeline();
 
     // Initially set elements to be invisible
@@ -77,7 +85,19 @@ export default function PersonalDetailsForm() {
     );
 
     return () => tl.kill();
-  }, [navigate]);
+  }, []);
+
+  // Check login status on component mount
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("No authentication token found. Please login first.");
+      // Optionally redirect to login page
+      // navigate('/login');
+    } else {
+      console.log("Token found in localStorage");
+    }
+  }, []);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -258,108 +278,53 @@ export default function PersonalDetailsForm() {
       formDataToSend.append("email", formData.email);
       formDataToSend.append("mobile", formData.mobile);
       formDataToSend.append("address", formData.address);
+      
+      // Check if file is valid before adding to FormData
+      if (!file) {
+        throw new Error("No file selected");
+      }
+      
+      // Log file details
+      console.log("File being uploaded:", {
+        name: file.name,
+        type: file.type,
+        size: `${(file.size / 1024).toFixed(2)} KB`
+      });
+      
       formDataToSend.append("counselingLetter", file);
 
       // Get token from local storage
-      const token = localStorage.getItem("token") || localStorage.getItem("authToken");
-      
+      const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Authentication token not found. Please login again.");
       }
 
-      let response;
-      try {
-        // Using fetch with correct port (5000) and properly formatted FormData
-        response = await fetch("http://localhost:5000/api/admission/personal-details", {
-          method: "POST",
+      // Log what's being sent for debugging
+      console.log("Sending form data:", {
+        name: formData.name,
+        email: formData.email,
+        mobile: formData.mobile,
+        address: formData.address,
+        file: file ? file.name : 'No file'
+      });
+
+      // Log headers for debugging
+      console.log("Request headers:", {
+        Authorization: `Bearer ${token}`
+      });
+
+      // Send data to the server
+      const response = await axios.post(
+        `${config.API_BASE_URL}/admission/personal-details`,
+        formDataToSend,
+        {
           headers: {
             Authorization: `Bearer ${token}`
-            // Note: Do NOT set Content-Type for FormData, browser will set it with boundary
-          },
-          body: formDataToSend
-        });
-      } catch (fetchError) {
-        console.error("Network error during form submission:", fetchError);
-        throw new Error("Cannot connect to the server. Please check your internet connection and try again.");
-      }
-
-      let data;
-      try {
-        data = await response.json();
-      } catch (parseError) {
-        console.error("Error parsing server response:", parseError);
-        throw new Error("Received an invalid response from the server. Please try again.");
-      }
-
-      if (!response.ok) {
-        // Handle the case of an existing application without needing the status endpoint
-        if (response.status === 409 || data.message?.includes("pending application")) {
-          console.log("User already has a pending application");
-          
-          // Check if we can extract an application ID from the error message
-          const idMatch = data.message?.match(/ID:\s*(\w+)/i);
-          const existingAppId = idMatch ? idMatch[1] : "existing";
-          
-          // Show special success message
-          setErrorMessage("");
-          setSubmitStatus("existing");
-          
-          // Set the application ID if we extracted one, or use a placeholder
-          setApplicationId(existingAppId);
-          
-          // Success animation
-          const tl = gsap.timeline();
-          
-          // Fade out form
-          tl.to(formRef.current, {
-            y: 20,
-            opacity: 0,
-            duration: 0.6,
-            ease: "power2.out"
-          });
-          
-          // Setup success elements before animating
-          setTimeout(() => {
-            // Fade in success message
-            tl.fromTo(successRef.current,
-              { scale: 0.8, opacity: 0 },
-              { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.7)" }
-            );
-            
-            // Redirect to academic details with a generated application ID if needed
-            setTimeout(() => {
-              navigate(`/admission/academic-details/${existingAppId}`, {
-                state: {
-                  personalDetails: {
-                    name: formData.name,
-                    email: formData.email,
-                    mobile: formData.mobile
-                  }
-                },
-                replace: true
-              });
-            }, 2000);
-          }, 100);
-          
-          return;
+          }
         }
-        
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      // Store application ID received from the server
-      const applicationId = data.applicationId || data.id;
-      setApplicationId(applicationId);
+      );
       
-      if (!applicationId) {
-        console.warn("No application ID received from server:", data);
-      }
-      
-      // Store token in both variables for compatibility
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("authToken", data.token);
-      }
+      console.log("Success:", response.data);
 
       // Success animation
       const tl = gsap.timeline();
@@ -391,36 +356,51 @@ export default function PersonalDetailsForm() {
         );
       }, 100);
 
-      // Redirect to next page after a short delay - programmatically with navigate
+      // Redirect to next page after 2 seconds
       setTimeout(() => {
-        // Make sure we have an application ID before redirecting
-        if (applicationId) {
-          // Navigate to academic details with state and params
-          navigate(`/admission/academic-details/${applicationId}`, {
-            state: {
-              personalDetails: {
-                name: formData.name,
-                email: formData.email,
-                mobile: formData.mobile
-              }
-            },
-            replace: true // Replace current entry in history to prevent going back
-          });
-        } else {
-          // If we don't have an application ID, display an error
-          setIsSubmitting(false);
-          setSubmitStatus("error");
-          setErrorMessage("Application submitted but no ID was returned. Please contact support.");
-        }
+        navigate(`/admission/academic-details`);
       }, 2000);
 
     } catch (error) {
+      console.error("Submission error details:", error);
+      console.error("Response data:", error.response?.data);
+      
+      // Handle "pending application" special case
+      if (error.response?.data?.message === "You already have a pending application") {
+        console.log("You already have a pending application. Redirecting to academic details...");
+        
+        // Set success status instead of error
+        setSubmitStatus("success");
+        
+        // Show custom success message for existing applications
+        setSuccessMessage("You already have an application in progress. Redirecting to academic details...");
+        
+        // Redirect to academic details page after 2 seconds
+        setTimeout(() => {
+          navigate('/admission/academic-details');
+        }, 2000);
+        
+        return;
+      }
+      
+      // For validation errors and other issues
       setIsSubmitting(false);
       setSubmitStatus("error");
-      setErrorMessage(
-        error.message ||
-        "An error occurred. Please try again."
-      );
+      
+      // Extract specific error message from response
+      let errorMsg = error.response?.data?.message || 
+                    error.response?.data?.details || 
+                    error.message ||
+                    "An error occurred. Please try again.";
+                    
+      // Display specific validation errors when available
+      if (error.response?.status === 400) {
+        if (error.response?.data?.details) {
+          errorMsg = `Validation Error: ${error.response.data.details}`;
+        }
+      }
+      
+      setErrorMessage(errorMsg);
 
       // Error animation with bounce effect
       const tl = gsap.timeline();
@@ -503,7 +483,7 @@ export default function PersonalDetailsForm() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        {submitStatus === "success" || submitStatus === "existing" ? (
+        {submitStatus === "success" ? (
           <div
             ref={successRef}
             className="flex flex-col items-center justify-center space-y-6 py-10 bg-white shadow-lg rounded-2xl p-8 border border-green-100"
@@ -511,15 +491,10 @@ export default function PersonalDetailsForm() {
             <div className="bg-green-100 p-4 rounded-full">
               <CheckCircle size={64} className="text-green-500" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 success-item">
-              {submitStatus === "existing" 
-                ? "Continuing Your Application" 
-                : "Details Submitted Successfully!"}
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-800 success-item">Details Submitted Successfully!</h2>
             <p className="text-gray-600 text-center success-item">
-              {submitStatus === "existing"
-                ? "We found your existing application. Redirecting to complete your academic details..."
-                : "Your personal details have been saved. Redirecting to academic details..."}
+              {successMessage}
+              <br />Redirecting to academic details...
             </p>
             <div className="success-item mt-4">
               <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -751,6 +726,7 @@ export default function PersonalDetailsForm() {
               )}
 
               <div className="flex justify-center md:justify-end pt-4">
+
                 <button
                   ref={submitBtnRef}
                   type="button"
@@ -770,6 +746,7 @@ export default function PersonalDetailsForm() {
                     </>
                   )}
                 </button>
+
               </div>
             </div>
           </>

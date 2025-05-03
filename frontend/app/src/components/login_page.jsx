@@ -2,6 +2,7 @@ import axios from 'axios';
 import { gsap } from 'gsap';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaFacebook, FaGithub, FaGoogle } from "react-icons/fa";
+import config from '../config';
 
 
 
@@ -19,7 +20,8 @@ const LoginPage = () => {
     e.preventDefault(); // Stop form from reloading the page
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      console.log(`${config.API_BASE_URL}/auth/login`);
+      const res = await axios.post(`${config.API_BASE_URL}/auth/login`, {
         email,
         password
       });

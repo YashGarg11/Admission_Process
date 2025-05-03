@@ -5,6 +5,7 @@ const { protect } = require("../middleware/authMiddleware");
 const { submitPersonalDetails, submitAcademicDetails } = require("../controllers/admissionController");
 const { generateIDCard } = require("../controllers/paymentGateway");
 const upload = require("../middleware/uploadMiddleware");
+const multer = require('multer');
 
 router.post(
   "/personal-details",
@@ -13,11 +14,12 @@ router.post(
   submitPersonalDetails
 );
 
-
 router.post(
   "/academic-details",
   protect,
-  upload.array("documents", 5),
+  upload.fields([
+    { name: 'documents', maxCount: 10 }
+  ]),
   submitAcademicDetails
 );
 

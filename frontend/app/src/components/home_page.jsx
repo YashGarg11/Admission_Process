@@ -1,6 +1,7 @@
 import { gsap } from 'gsap';
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import CollegeNavbar from './navbar';
 
 const HomePage = () => {
   const headerRef = useRef(null);
@@ -8,6 +9,9 @@ const HomePage = () => {
   const buttonsRef = useRef(null);
   const adminButtonsRef = useRef(null);
   const featuresRef = useRef(null);
+
+
+
 
   useEffect(() => {
     // Create our animation timeline
@@ -56,9 +60,12 @@ const HomePage = () => {
   }, []);
 
   return (
+
+
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="flex flex-col items-center">
+          <CollegeNavbar />
           {/* Admin Buttons */}
           <div ref={adminButtonsRef} className="w-full flex flex-col sm:flex-row justify-end gap-4 mb-8">
             <Link to="/dashboard" className="no-underline">

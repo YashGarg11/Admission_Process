@@ -1,7 +1,9 @@
+import axios from 'axios';
 import { gsap } from 'gsap/gsap-core';
 import { AlertTriangle, ArrowRight, BookOpen, Check, FileText, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import config from '../config';
 
 // Academic Service - would be better in a separate file
 const academicService = {
@@ -9,11 +11,11 @@ const academicService = {
   getCourses: async () => {
     // Return default courses since the endpoint doesn't exist
     return [
-      'Computer Science Engineering (CSE)', 
-      'Computer Science (CS)', 
-      'Information Technology (IT)', 
-      'Electronics and Communication (ECE)', 
-      'Mechanical Engineering (ME)', 
+      'Computer Science Engineering (CSE)',
+      'Computer Science (CS)',
+      'Information Technology (IT)',
+      'Electronics and Communication (ECE)',
+      'Mechanical Engineering (ME)',
       'Civil Engineering (CE)'
     ];
   }
@@ -38,7 +40,7 @@ export default function AcademicDetailsForm() {
   const { applicationId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Form state
   const [course, setCourse] = useState('');
   const [files, setFiles] = useState([]);
@@ -63,6 +65,58 @@ export default function AcademicDetailsForm() {
   // State for available courses (will be loaded from API)
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Simple test function to verify file upload works
+  const testUpload = async () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token || files.length === 0) {
+      alert("Please select files and ensure you're logged in");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Create a minimal FormData with more detailed test data
+      const testFormData = new FormData();
+      testFormData.append('course', 'Test Course');
+      
+      // Create arrays with clear, distinct values
+      const testNames = files.slice(0, 1).map(file => `Test Name: ${file.name}`);
+      const testTypes = files.slice(0, 1).map(() => 'marksheet_10'); // Using a real document type
+      
+      console.log('Test names array:', testNames);
+      console.log('Test types array:', testTypes);
+      
+      testFormData.append('documentNames', JSON.stringify(testNames));
+      testFormData.append('documentTypes', JSON.stringify(testTypes));
+      
+      // Only add the first file for testing
+      testFormData.append('documents', files[0]);
+
+      console.log('Testing with file:', files[0].name);
+
+      // Make the request
+      const response = await axios.post(
+        `${config.API_BASE_URL}/admission/academic-details`,
+        testFormData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      console.log('Test success:', response.data);
+      alert('Test upload successful!');
+    } catch (error) {
+      console.error('Test failed:', error);
+      setError(`Test failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initialize animations and fetch data
   useEffect(() => {
@@ -128,20 +182,20 @@ export default function AcademicDetailsForm() {
     const newFileNames = selectedFiles.map(file => file.name);
     setFileNames([...fileNames, ...newFileNames]);
     setCustomNames([...customNames, ...newFileNames]);
-    
+
     // Set default document types based on the first few required documents that might not be added yet
     const newDocTypes = selectedFiles.map(() => {
       // Find required document types that haven't been assigned yet
       const missingRequiredTypes = DOCUMENT_TYPES.filter(
         type => type.required && !documentTypes.includes(type.id)
       );
-      
+
       if (missingRequiredTypes.length > 0) {
         return missingRequiredTypes[0].id;
       }
       return 'other'; // Default to 'other' if all required types are covered
     });
-    
+
     setDocumentTypes([...documentTypes, ...newDocTypes]);
 
     // Animate new files being added
@@ -186,7 +240,7 @@ export default function AcademicDetailsForm() {
     newCustomNames[index] = name;
     setCustomNames(newCustomNames);
   };
-  
+
   // Handle document type change
   const handleDocTypeChange = (index, docType) => {
     const newDocTypes = [...documentTypes];
@@ -209,18 +263,18 @@ export default function AcademicDetailsForm() {
     if (customNames.some(name => !name.trim())) {
       errors.names = "All documents must have names";
     }
-    
+
     // Check required document types
     const requiredDocTypes = DOCUMENT_TYPES.filter(type => type.required).map(type => type.id);
     const missingRequiredDocs = requiredDocTypes.filter(
       reqType => !documentTypes.includes(reqType)
     );
-    
+
     if (missingRequiredDocs.length > 0) {
       const missingDocNames = missingRequiredDocs.map(
         id => DOCUMENT_TYPES.find(type => type.id === id).name
       );
-      
+
       errors.docTypes = `Missing required documents: ${missingDocNames.join(', ')}`;
     }
 
@@ -256,74 +310,74 @@ export default function AcademicDetailsForm() {
     // Create form data for file upload
     const formData = new FormData();
     formData.append('course', course);
-    if (applicationId) {
-      formData.append('applicationId', applicationId);
+    
+    // Ensure the arrays align with the files
+    if (files.length !== customNames.length || files.length !== documentTypes.length) {
+      setError("Internal error: Mismatch between files and their metadata. Please refresh and try again.");
+      setLoading(false);
+      return;
     }
-
-    files.forEach((file, index) => {
-      formData.append('files', file);
-      formData.append('documentNames', customNames[index]);
-      formData.append('documentTypes', documentTypes[index]);
+    
+    // Log for verification
+    console.log('Submission data:');
+    console.log('- Files:', files.map(f => f.name));
+    console.log('- Names:', customNames);
+    console.log('- Types:', documentTypes);
+    
+    // Convert names and types to JSON strings
+    formData.append('documentNames', JSON.stringify(customNames));
+    formData.append('documentTypes', JSON.stringify(documentTypes));
+    
+    // Add files with the correct field name
+    files.forEach(file => {
+      formData.append('documents', file);
     });
 
     // API connection code
     const submitToAPI = async () => {
       try {
         let response;
-        
+
         try {
-          // Use fetch with FormData for file uploads
-          // Make sure this endpoint exists in your backend
-          response = await fetch('http://localhost:5000/api/admission/academic-details', {
-            method: 'POST',
-            body: formData,
-            headers: {
-              // Don't set Content-Type header when using FormData - the browser will set it with the correct boundary
-              'Authorization': `Bearer ${token}`
+          // Use axios instead of fetch for better error handling
+          response = await axios.post(
+            `${config.API_BASE_URL}/admission/academic-details`,
+            formData,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+          
+          // Success handling
+          console.log("Success response:", response.data);
+          setSuccess(true);
+          setError(null);
+
+          // Success animation
+          gsap.to(formRef.current, {
+            opacity: 0,
+            y: -20,
+            duration: 0.5,
+            onComplete: () => {
+              gsap.fromTo(
+                successRef.current,
+                { opacity: 0, scale: 0.8 },
+                { opacity: 1, scale: 1, duration: 0.6, ease: "elastic.out(1, 0.5)" }
+              );
             }
           });
-        } catch (networkError) {
-          console.error("Network error during form submission:", networkError);
-          throw new Error("Cannot connect to the server. Please check your internet connection and try again.");
+
+          // Navigate to the next page after successful submission
+          setTimeout(() => {
+            navigate('/admission/submission-success');
+          }, 2000);
+          
+        } catch (error) {
+          console.error("Error response:", error.response?.data);
+          throw new Error(error.response?.data?.message || "Server error processing your academic details.");
         }
-        
-        // First check if the response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          // Not a JSON response, likely an error page
-          const htmlResponse = await response.text();
-          console.error("Server returned non-JSON response:", htmlResponse.substring(0, 200) + "...");
-          throw new Error("Server returned an invalid response format. Please contact support.");
-        }
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || `Server responded with ${response.status}: ${response.statusText}`);
-        }
-
-        // Success state
-        setSuccess(true);
-        setError(null);
-
-        // Success animation
-        gsap.to(formRef.current, {
-          opacity: 0,
-          y: -20,
-          duration: 0.5,
-          onComplete: () => {
-            gsap.fromTo(
-              successRef.current,
-              { opacity: 0, scale: 0.8 },
-              { opacity: 1, scale: 1, duration: 0.6, ease: "elastic.out(1, 0.5)" }
-            );
-          }
-        });
-
-        // Navigate to the next page after successful submission
-        setTimeout(() => {
-          navigate('/admission/submission-success');
-        }, 2000);
       } catch (err) {
         console.error("Error submitting form:", err);
         setError(err.message || "Server error processing your academic details. Please try again.");
@@ -517,7 +571,7 @@ export default function AcademicDetailsForm() {
                     setCourse(e.target.value);
                     // Clear validation error when user selects a course
                     if (validationErrors.course) {
-                      setValidationErrors({...validationErrors, course: ""});
+                      setValidationErrors({ ...validationErrors, course: "" });
                     }
                   }}
                   className={`w-full px-3 py-2 border ${validationErrors.course ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
@@ -581,6 +635,15 @@ export default function AcademicDetailsForm() {
                   <p className="mt-1 text-sm text-red-600">{validationErrors.files}</p>
                 )}
 
+                {/* Test button - only show during development */}
+                <button
+                  type="button"
+                  onClick={testUpload}
+                  className="mt-2 px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700"
+                >
+                  Test Simple Upload
+                </button>
+
                 {/* File list */}
                 {files.length > 0 && (
                   <div className="mt-4">
@@ -606,7 +669,7 @@ export default function AcademicDetailsForm() {
                                   ))}
                                 </select>
                               </div>
-                              
+
                               <div>
                                 <label className="block text-xs text-gray-500 mb-1">Document Name/Description</label>
                                 <input
@@ -679,7 +742,7 @@ export default function AcademicDetailsForm() {
                     {files.map((file, index) => {
                       // Get document type name from the ID
                       const docTypeObj = DOCUMENT_TYPES.find(type => type.id === documentTypes[index]) || { name: 'Unknown' };
-                      
+
                       return (
                         <li key={index} className="bg-white p-3 rounded border border-gray-200">
                           <div className="flex justify-between flex-wrap">
@@ -693,19 +756,19 @@ export default function AcademicDetailsForm() {
                       );
                     })}
                   </ul>
-                  
+
                   {/* Show warning if any required documents are missing */}
                   {(() => {
                     const requiredDocTypes = DOCUMENT_TYPES.filter(type => type.required).map(type => type.id);
                     const missingRequiredDocs = requiredDocTypes.filter(
                       reqType => !documentTypes.includes(reqType)
                     );
-                    
+
                     if (missingRequiredDocs.length > 0) {
                       const missingDocNames = missingRequiredDocs.map(
                         id => DOCUMENT_TYPES.find(type => type.id === id).name
                       );
-                      
+
                       return (
                         <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
                           <div className="flex">
@@ -714,7 +777,7 @@ export default function AcademicDetailsForm() {
                             </div>
                             <div className="ml-3">
                               <p className="text-sm text-yellow-700">
-                                <strong>Warning:</strong> The following required documents are missing: 
+                                <strong>Warning:</strong> The following required documents are missing:
                                 <span className="font-medium"> {missingDocNames.join(', ')}</span>
                               </p>
                             </div>

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const academicDocumentSchema = new mongoose.Schema({
   path: { type: String, required: true },
   name: { type: String, required: true },
+  type: { type: String, default: 'other' }
 });
 
 const CounsellingSchema = new mongoose.Schema({

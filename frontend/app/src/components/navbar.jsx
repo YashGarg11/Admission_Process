@@ -1,12 +1,47 @@
 // CollegeNavbar.jsx
 import 'bootstrap/dist/css/bootstrap.min.css';
-import React from 'react';
+import { gsap } from 'gsap';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-scroll';
-import './navbar.module.css'; // Optional
+import './navbar.module.css'; // Optional custom styles
 
 export default function CollegeNavbar() {
+  const navbarRef = useRef(null);
+  const navItemsRef = useRef([]);
+
+  useEffect(() => {
+    gsap.fromTo(
+      navbarRef.current,
+      { y: -100, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+    );
+
+    gsap.fromTo(
+      navItemsRef.current,
+      { y: -20, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: 'power3.out',
+        stagger: 0.15,
+        delay: 0.5,
+      }
+    );
+  }, []);
+
+  const navItems = [
+    { id: 'home', label: 'Home' },
+    { id: 'courses', label: 'Courses' },
+    { id: 'admission', label: 'Admission' },
+    { id: 'contact', label: 'Contact' },
+  ];
+
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow">
+    <nav
+      className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow"
+      ref={navbarRef}
+    >
       <div className="container">
         <Link
           to="home"
@@ -31,51 +66,20 @@ export default function CollegeNavbar() {
 
         <div className="collapse navbar-collapse" id="collegeNavbar">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <Link
-                to="home"
-                className="nav-link"
-                smooth={true}
-                duration={500}
-                offset={-70}
-              >
-                Home
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link
-                to="courses"
-                className="nav-link"
-                smooth={true}
-                duration={500}
-                offset={-70}
-              >
-                Courses
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link
-                to="admission"
-                className="nav-link"
-                smooth={true}
-                duration={500}
-                offset={-70}
-              >
-                Admission
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link
-                to="contact"
-                className="nav-link"
-                smooth={true}
-                duration={500}
-                offset={-70}
-              >
-                Contact
-              </Link>
-            </li>
-            <li className="nav-item">
+            {navItems.map((item, index) => (
+              <li className="nav-item" key={item.id} ref={el => (navItemsRef.current[index] = el)}>
+                <Link
+                  to={item.id}
+                  className="nav-link"
+                  smooth={true}
+                  duration={500}
+                  offset={-70}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li className="nav-item" ref={el => (navItemsRef.current[navItems.length] = el)}>
               <a className="btn btn-light btn-sm ms-3" href="/admin">
                 Admin/Login
               </a>

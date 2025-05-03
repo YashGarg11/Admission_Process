@@ -2,6 +2,7 @@ import axios from 'axios';
 import { gsap } from 'gsap';
 import React, { useEffect, useRef, useState } from 'react';
 import { FaFacebook, FaGithub, FaGoogle } from "react-icons/fa";
+import config from '../config';
 
 const RegistrationPage = () => {
   const [formData, setFormData] = useState({
@@ -34,7 +35,7 @@ const RegistrationPage = () => {
     }
 
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', formData);
+      const res = await axios.post(`${config.API_BASE_URL}/auth/register`, formData);
 
       setSuccess('Registration successful! You can now log in.');
       setError('');
