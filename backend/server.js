@@ -3,7 +3,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const session = require('express-session');
-const passport = require('./config/passport'); // Import configured passport
+const MongoStore = require('connect-mongo'); // ✅ Add this
+const passport = require('./config/passport');
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
 const admissionRoutes = require('./routes/admissionRoutes');
@@ -11,22 +12,30 @@ const admissionRoutes = require('./routes/admissionRoutes');
 dotenv.config();
 const app = express();
 
+// Connect to MongoDB
+connectDB();
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Add session middleware for Passport
+// ✅ Add MongoDB-backed session store
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your_secret_session_key',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    collectionName: 'sessions',
+  }),
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
+  }
 }));
 
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
-
-connectDB();
 
 app.get("/", (req, res) => {
   res.send("College Admission API Running");
