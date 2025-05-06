@@ -15,10 +15,34 @@ const app = express();
 // Connect to DB
 connectDB();
 
-// CORS Config
+// Define allowed origins based on environment
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [process.env.FRONTEND_URL || 'https://your-frontend.vercel.app'] // Production frontend URL
+  : ['http://localhost:5173']; // Development frontend URL
+
+console.log('Allowed origins:', allowedOrigins);
+
+// CORS Config with proper error handling
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://your-frontend.vercel.app'],
-  credentials: true,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('Request from origin:', origin);
+      console.log('Allowed origins:', allowedOrigins);
+      
+      // During development, allow all origins
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
 }));
 
 app.use(express.json());

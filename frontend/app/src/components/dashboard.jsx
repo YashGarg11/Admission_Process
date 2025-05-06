@@ -35,7 +35,7 @@ export default function AdmissionDashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(3);
   const [profileDropdown, setProfileDropdown] = useState(false);
-  
+
   const sidebarRef = useRef(null);
   const contentRef = useRef(null);
   const overlayRef = useRef(null);
@@ -65,7 +65,7 @@ export default function AdmissionDashboard() {
       } else if (window.innerWidth >= 1280 && !sidebarOpen) {
         setSidebarOpen(true);
       }
-      
+
       // Force rerender to adjust content position
       if (contentRef.current) {
         contentRef.current.style.opacity = '0.99';
@@ -118,7 +118,7 @@ export default function AdmissionDashboard() {
         }
       });
     }
-    
+
     // Adjust main content position when sidebar state changes
     if (window.innerWidth < 768) {
       // On mobile, take full width regardless of sidebar state (sidebar overlays content)
@@ -145,12 +145,12 @@ export default function AdmissionDashboard() {
   useEffect(() => {
     // Stagger-animate the content sections when a new module is selected
     const timeline = gsap.timeline();
-    
+
     timeline.fromTo(contentRef.current,
       { opacity: 0, y: 20 },
       { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
     );
-    
+
     if (headerRef.current) {
       timeline.fromTo(headerRef.current,
         { opacity: 0, y: -20 },
@@ -158,7 +158,7 @@ export default function AdmissionDashboard() {
         "-=0.2"
       );
     }
-    
+
     if (statsRef.current) {
       timeline.fromTo(statsRef.current.children,
         { opacity: 0, y: 30, scale: 0.95 },
@@ -166,7 +166,7 @@ export default function AdmissionDashboard() {
         "-=0.2"
       );
     }
-    
+
     if (chartsRef.current) {
       timeline.fromTo(chartsRef.current,
         { opacity: 0, y: 40 },
@@ -174,7 +174,7 @@ export default function AdmissionDashboard() {
         "-=0.3"
       );
     }
-    
+
     if (tableRef.current) {
       timeline.fromTo(tableRef.current,
         { opacity: 0, y: 40 },
@@ -187,7 +187,7 @@ export default function AdmissionDashboard() {
   // Scroll animations
   useEffect(() => {
     const sections = document.querySelectorAll('.animate-on-scroll');
-    
+
     sections.forEach(section => {
       gsap.fromTo(section,
         { opacity: 0, y: 50 },
@@ -305,7 +305,7 @@ export default function AdmissionDashboard() {
               <X size={24} />
             </button>
           )}
-          
+
           <div className="flex items-center">
             {sidebarOpen ? (
               <>
@@ -332,11 +332,10 @@ export default function AdmissionDashboard() {
               <li key={module.id}>
                 <button
                   onClick={() => setActiveModule(module.id)}
-                  className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 ${
-                    activeModule === module.id
+                  className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 ${activeModule === module.id
                       ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
                       : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
-                  }`}
+                    }`}
                 >
                   <div className={`${sidebarOpen ? 'mr-3' : 'mx-auto'}`}>
                     {module.icon}
@@ -385,14 +384,14 @@ export default function AdmissionDashboard() {
                 {modules.find(m => m.id === activeModule)?.name}
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <button className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 focus:outline-none">
                   <Search size={20} />
                 </button>
               </div>
-              
+
               <div className="relative">
                 <button className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 focus:outline-none">
                   <Bell size={20} />
@@ -403,7 +402,7 @@ export default function AdmissionDashboard() {
                   </div>
                 )}
               </div>
-              
+
               <button
                 onClick={toggleDarkMode}
                 className="flex items-center justify-center w-10 h-10 rounded-full text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 focus:outline-none"
@@ -418,7 +417,7 @@ export default function AdmissionDashboard() {
                   </svg>
                 )}
               </button>
-              
+
               <div className="relative">
                 <button
                   onClick={() => setProfileDropdown(!profileDropdown)}
@@ -432,7 +431,7 @@ export default function AdmissionDashboard() {
                     <div className="text-sm text-gray-500 dark:text-gray-400">Admin</div>
                   </div>
                 </button>
-                
+
                 {profileDropdown && (
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-900 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
                     <a href="#profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">Profile</a>
@@ -510,7 +509,7 @@ function ApplicationDetailRow() {
   const course = "Computer Science";
   const status = "Pending";
   const date = "24 Apr 2025";
-  
+
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case 'approved':
