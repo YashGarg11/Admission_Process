@@ -12,6 +12,16 @@ export default defineConfig({
   optimizeDeps: {
     include: ['gsap', 'gsap/ScrollTrigger'],
   },
+  server: {
+    proxy: {
+      // Proxy API requests to the backend during development
+      '/api': {
+        target: 'https://admission-process-2.onrender.com',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  },
   build: {
     sourcemap: true,
     rollupOptions: {

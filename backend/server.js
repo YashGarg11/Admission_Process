@@ -15,34 +15,45 @@ const app = express();
 // Connect to DB
 connectDB();
 
-// Define allowed origins based on environment
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [process.env.FRONTEND_URL || 'https://your-frontend.vercel.app'] // Production frontend URL
-  : ['http://localhost:5173']; // Development frontend URL
+// Define allowed origins array with common frontend origins
+const allowedOrigins = [
+  'https://college-admission-system.vercel.app',
+  'https://college-admission-system.netlify.app',
+  'https://your-frontend.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
 
-console.log('Allowed origins:', allowedOrigins);
+// Add the frontend URL from environment variable if available
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
-// CORS Config with proper error handling
+console.log('Configured origins:', allowedOrigins);
+
+// CORS Config
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or postman)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) === -1) {
-      console.log('Request from origin:', origin);
-      console.log('Allowed origins:', allowedOrigins);
-      
-      // During development, allow all origins
-      if (process.env.NODE_ENV !== 'production') {
-        return callback(null, true);
-      }
-      
-      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
+    console.log('Request from origin:', origin);
+    
+    // For now, allow all origins to prevent deployment issues
+    // You can change this to the commented code below when your app is stable
     return callback(null, true);
+    
+    /* Stricter production version:
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+    */
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
