@@ -8,38 +8,36 @@ const connectDB = require("./config/db");
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
 const admissionRoutes = require('./routes/admissionRoutes');
-const StatusRoutes=require('./routes/StatusRoutes');
+const statusRoutes = require('./routes/StatusRoutes');
 
 dotenv.config();
-const app = express();
 
-// Connect to DB
+// Connect to MongoDB
 connectDB();
 
-// CORS Config
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://your-frontend.vercel.app'],
-  credentials: true,
-}));
+const app = express();
 
+// Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session Middleware (required for Passport)
+// Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your_default_secret',
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: process.env.MONGO_URI,
-    collectionName: 'sessions',
+    ttl: 24 * 60 * 60 // 1 day
   }),
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
 
-// Passport Setup
+// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -48,10 +46,11 @@ app.get("/", (req, res) => {
   res.send("College Admission API Running");
 });
 
+// API Routes
+app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admission", admissionRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/Status"),StausRoutes;
+app.use("/api/status", statusRoutes);
 
 // Server Start
 const PORT = process.env.PORT || 5000;
