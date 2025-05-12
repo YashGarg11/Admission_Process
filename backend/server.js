@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
 const admissionRoutes = require('./routes/admissionRoutes');
+const StatusRoutes=require('./routes/StatusRoutes');
 
 dotenv.config();
 const app = express();
@@ -15,45 +16,10 @@ const app = express();
 // Connect to DB
 connectDB();
 
-// Define allowed origins array with common frontend origins
-const allowedOrigins = [
-  'https://college-admission-system.vercel.app',
-  'https://college-admission-system.netlify.app',
-  'https://your-frontend.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000'
-];
-
-// Add the frontend URL from environment variable if available
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL);
-}
-
-console.log('Configured origins:', allowedOrigins);
-
 // CORS Config
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or postman)
-    if (!origin) return callback(null, true);
-    
-    console.log('Request from origin:', origin);
-    
-    // For now, allow all origins to prevent deployment issues
-    // You can change this to the commented code below when your app is stable
-    return callback(null, true);
-    
-    /* Stricter production version:
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-    */
-  },
+  origin: ['http://localhost:5173', 'https://your-frontend.vercel.app'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
@@ -85,6 +51,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admission", admissionRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/Status"),StausRoutes;
 
 // Server Start
 const PORT = process.env.PORT || 5000;

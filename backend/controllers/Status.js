@@ -7,16 +7,29 @@ const Application = require('../models/Application');
  */
 exports.getDashboardStats = async (req, res) => {
   try {
-    // Get counts of applications by status
+    const { period = 'current' } = req.query;
+    const today = new Date();
+    let startDate, endDate;
+
+    if (period === 'previous') {
+      // Get previous month's date range
+      startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+    } else {
+      // Get current month's date range
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    }
+
+    // Get counts of applications by status for the specified period
     const [total, pending, approved, rejected] = await Promise.all([
-      Application.countDocuments(),
-      Application.countDocuments({ status: 'pending' }),
-      Application.countDocuments({ status: 'approved' }),
-      Application.countDocuments({ status: 'rejected' })
+      Application.countDocuments({ createdAt: { $gte: startDate, $lte: endDate } }),
+      Application.countDocuments({ status: 'pending', createdAt: { $gte: startDate, $lte: endDate } }),
+      Application.countDocuments({ status: 'approved', createdAt: { $gte: startDate, $lte: endDate } }),
+      Application.countDocuments({ status: 'rejected', createdAt: { $gte: startDate, $lte: endDate } })
     ]);
 
     // Get application trends by day for current week
-    const today = new Date();
     const oneWeekAgo = new Date(today);
     oneWeekAgo.setDate(today.getDate() - 7);
 
@@ -37,24 +50,13 @@ exports.getDashboardStats = async (req, res) => {
       }
     ]);
 
-    // Calculate revenue (assuming ₹5000 per approved application)
-    const revenue = approved * 5000;
-
     // Create a response with all stats
     const stats = {
       total,
       pending,
       approved,
       rejected,
-      revenue: `₹${(revenue / 100000).toFixed(1)}L`, // Format as ₹X.XL
-      dailyApplications,
-      // Calculate growth rates (mock data for now)
-      growth: {
-        total: 12,
-        pending: 8,
-        approved: 22,
-        revenue: 18
-      }
+      dailyApplications
     };
 
     res.status(200).json({
@@ -117,7 +119,6 @@ exports.getRecentApplications = async (req, res) => {
  */
 exports.getApplicationDistribution = async (req, res) => {
   try {
-    // Get distribution by status
     const statusDistribution = await Application.aggregate([
       {
         $group: {
