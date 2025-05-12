@@ -3,10 +3,19 @@ const Application = require("../models/Application");
 // Handle getting all applications (admin-only)
 const getAllApplications = async (req, res) => {
   try {
-    const applications = await Application.find().populate('user', 'name email');
-    res.status(200).json(applications);
+    const applications = await Application.find()
+      .select('name email phone course status createdAt')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json({
+      success: true,
+      data: applications
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ 
+      success: false,
+      message: err.message 
+    });
   }
 };
 
