@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const sendMail = require('../utils/SendEmail');
+
 
 exports.registerUser = async (req, res) => {
   try {
@@ -29,6 +31,12 @@ exports.registerUser = async (req, res) => {
       expiresIn: "1d",
     });
 
+    await sendMail(
+      newUser.email,
+      "🎓 Registration Successful",
+      `<h3>Hello ${newUser.name},</h3><p>Your registration was successful!</p>`
+    );
+
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -48,6 +56,10 @@ exports.registerUser = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
+
+
+
+
 };
 
 
@@ -72,6 +84,12 @@ exports.loginUser = async (req, res) => {
       expiresIn: "1d",
     });
 
+
+    await sendMail(
+      user.email,
+      "🔐 Login Alert - Admission Portal",
+      `<p>Hi ${user.name},</p><p>You just logged into your account. If this wasn't you, please contact support.</p>`
+    );
     res.status(200).json({
       token,
       user: {
@@ -86,6 +104,10 @@ exports.loginUser = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
+
+
+
+
 };
 
 // New functions for social login
