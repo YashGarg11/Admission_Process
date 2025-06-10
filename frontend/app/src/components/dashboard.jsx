@@ -1,4 +1,3 @@
-import axios from 'axios';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
@@ -16,7 +15,6 @@ import {
   X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import config from "../config";
 import AcceptedPage from '../pages/accepted';
 import ApplicationPage from '../pages/application';
 import IdcardPage from '../pages/idcard';
@@ -25,6 +23,7 @@ import PaymentPage from '../pages/payment';
 import RejectedPage from '../pages/rejected';
 import SeatsPage from '../pages/seats';
 import SettingPage from '../pages/setting';
+import api from '../utils/api';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -35,6 +34,13 @@ export default function AdmissionDashboard() {
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(3);
   const [profileDropdown, setProfileDropdown] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [applicationStats, setApplicationStats] = useState({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0
+  });
 
   const sidebarRef = useRef(null);
   const contentRef = useRef(null);
@@ -56,6 +62,40 @@ export default function AdmissionDashboard() {
     { id: 'messages', name: 'Messages', icon: <MessageSquare size={20} /> },
     { id: 'settings', name: 'Settings', icon: <Settings size={20} /> },
   ];
+
+  // Check admin privileges on mount
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role !== 'admin') {
+      console.error('Access denied: Admin privileges required');
+      window.location.href = '/home';
+    } else {
+      setIsAdmin(true);
+    }
+  }, []);
+
+  // Fetch application stats
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (!isAdmin) return;
+      
+      try {
+        const res = await api.get('/admin/count-by-status');
+        const stats = { pending: 0, approved: 0, rejected: 0, total: 0 };
+
+        res.data.data.forEach(item => {
+          stats[item._id] = item.count;
+          stats.total += item.count;
+        });
+
+        setApplicationStats(stats);
+      } catch (err) {
+        console.error("Failed to fetch status counts", err);
+      }
+    };
+
+    fetchCounts();
+  }, [isAdmin]);
 
   // Handle window resize
   useEffect(() => {
@@ -209,34 +249,6 @@ export default function AdmissionDashboard() {
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
   }, [activeModule]);
-
-  const [applicationStats, setApplicationStats] = useState({
-    total: 125,
-    pending: 42,
-    approved: 63,
-    rejected: 20
-  });
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const res = await axios.get(`${config.API_BASE_URL}/api/admin/status-counts`);
-        const stats = { pending: 0, approved: 0, rejected: 0, total: 0 };
-
-        res.data.data.forEach(item => {
-          stats[item._id] = item.count;
-          stats.total += item.count;
-        });
-
-        setApplicationStats(stats);
-      } catch (err) {
-        console.error("Failed to fetch status counts", err);
-        // Keep the dummy data in case the API fails
-      }
-    };
-
-    fetchCounts();
-  }, []);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);

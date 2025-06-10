@@ -26,17 +26,25 @@ const LoginPage = () => {
         password
       });
 
-      const token = res.data.token;
+      const { token, user } = res.data;
 
+      // Store both token and user data in localStorage
       localStorage.setItem('token', token);
-      console.log(localStorage);
+      localStorage.setItem('user', JSON.stringify(user));
+      console.log('Stored user data:', user);
 
       setError('');
 
-      window.location.href = '/home';
+      // Redirect based on user role
+      if (user.role === 'admin') {
+        window.location.href = '/dashboard';
+      } else {
+        window.location.href = '/home';
+      }
 
       setTimeout(() => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         alert('Session expired. Please login again.');
         window.location.href = '/login';
       }, 60 * 60 * 1000);

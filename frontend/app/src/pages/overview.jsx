@@ -1,8 +1,7 @@
-import axios from 'axios';
 import gsap from 'gsap';
-import { AlertTriangle, CheckCircle, DollarSign, FileText, TrendingUp } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
-import config from '../config';
+import { AlertTriangle, CheckCircle, CircleX, FileText, TrendingUp } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import api from '../utils/api'; // Import the authenticated API utility
 
 const OverviewPage = () => {
   const [stats, setStats] = useState({
@@ -10,7 +9,7 @@ const OverviewPage = () => {
     pending: 0,
     approved: 0,
     rejected: 0,
-    revenue: '₹0L',
+
     dailyApplications: [],
     growth: {
       total: 0,
@@ -33,41 +32,40 @@ const OverviewPage = () => {
   const chartsRef = useRef(null);
   const recentAppsRef = useRef(null);
 
-  // Setup axios instance with base URL
-  const api = axios.create({
-    baseURL: config.API_BASE_URL
-  });
-
   // Fetch dashboard stats data
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch stats
+        // Fetch stats using the authenticated API
         const statsResponse = await api.get('/admin/count-by-status');
 
         if (statsResponse.data.success) {
+          const total = statsResponse.data.data.reduce((sum, item) => sum + item.count, 0);
+          const pending = statsResponse.data.data.find(item => item._id === 'pending')?.count || 0;
+          const approved = statsResponse.data.data.find(item => item._id === 'approved')?.count || 0;
+          const rejected = statsResponse.data.data.find(item => item._id === 'rejected')?.count || 0;
+
           setStats({
-            total: statsResponse.data.data.reduce((sum, item) => sum + item.count, 0),
-            pending: statsResponse.data.data.find(item => item._id === 'pending')?.count || 0,
-            approved: statsResponse.data.data.find(item => item._id === 'approved')?.count || 0,
-            rejected: statsResponse.data.data.find(item => item._id === 'rejected')?.count || 0,
-            revenue: `₹${((statsResponse.data.data.find(item => item._id === 'approved')?.count || 0) * 5000 / 100000).toFixed(1)}L`,
+            total,
+            pending,
+            approved,
+            rejected,
             dailyApplications: [],
             growth: {
-              total: 12,
-              pending: 8,
-              approved: 22,
-              revenue: 18
+              total: total > 0 ? Math.round((total / total) * 100) : 0,
+              pending: total > 0 ? Math.round((pending / total) * 100) : 0,
+              approved: total > 0 ? Math.round((approved / total) * 100) : 0,
+              rejected: total > 0 ? Math.round((rejected / total) * 100) : 0
             }
           });
         }
 
         // Fetch applications for the recent list
         const applicationsResponse = await api.get('/admin/applications');
-        
-        if (applicationsResponse.data) {
+
+        if (applicationsResponse.data.success && applicationsResponse.data.data) {
           // Format the most recent 5 applications
-          const recentApps = applicationsResponse.data
+          const recentApps = applicationsResponse.data.data
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 5)
             .map(app => ({
@@ -78,26 +76,26 @@ const OverviewPage = () => {
               status: app.status.charAt(0).toUpperCase() + app.status.slice(1),
               date: formatDate(new Date(app.createdAt))
             }));
-          
+
           setRecentApplications(recentApps);
         }
 
         // Get distribution data by counting applications by course and status
-        if (applicationsResponse.data) {
+        if (applicationsResponse.data.success && applicationsResponse.data.data) {
           // Count by status
           const statusCounts = {};
-          applicationsResponse.data.forEach(app => {
+          applicationsResponse.data.data.forEach(app => {
             statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
           });
-          
+
           // Count by course
           const courseCounts = {};
-          applicationsResponse.data.forEach(app => {
+          applicationsResponse.data.data.forEach(app => {
             if (app.course) {
               courseCounts[app.course] = (courseCounts[app.course] || 0) + 1;
             }
           });
-          
+
           setDistribution({
             byStatus: Object.entries(statusCounts).map(([status, count]) => ({ _id: status, count })),
             byCourse: Object.entries(courseCounts).map(([course, count]) => ({ _id: course, count }))
@@ -181,7 +179,7 @@ const OverviewPage = () => {
     return {
       approved: Math.round((stats.approved / total) * 100),
       pending: Math.round((stats.pending / total) * 100),
-      rejected: Math.round((stats.rejected / total) * 100)
+      rejected: Math.round((stats.rejected / total) * 100),
     };
   };
 
@@ -229,7 +227,7 @@ const OverviewPage = () => {
             pending: statsResponse.data.data.find(item => item._id === 'pending')?.count || 0,
             approved: statsResponse.data.data.find(item => item._id === 'approved')?.count || 0,
             rejected: statsResponse.data.data.find(item => item._id === 'rejected')?.count || 0,
-            revenue: `₹${((statsResponse.data.data.find(item => item._id === 'approved')?.count || 0) * 5000 / 100000).toFixed(1)}L`,
+
           });
         }
       } else {
@@ -306,17 +304,17 @@ const OverviewPage = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-100 dark:border-gray-700 transform transition-transform duration-300 hover:shadow-lg hover:-translate-y-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue</p>
-              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-1">{stats.revenue || '₹0L'}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Reject Application</p>
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{stats.rejected || '0'}</p>
               <div className="flex items-center mt-2">
-                <span className="text-green-500 dark:text-green-400 flex items-center text-sm">
-                  <TrendingUp size={16} className="mr-1" /> {stats.growth?.revenue || 0}%
+                <span className="text-red-500 dark:text-red-400 flex items-center text-sm">
+                  <TrendingUp size={16} className="mr-1" /> {stats.growth?.rejected || 0}%
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">from last month</span>
               </div>
             </div>
-            <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400">
-              <DollarSign size={24} />
+            <div className="p-3 rounded-full bg-purple-100 dark:bg-red-900 text-red-600 dark:text-red-400">
+              <CircleX size={24} />
             </div>
           </div>
         </div>

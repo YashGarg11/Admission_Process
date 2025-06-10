@@ -1,7 +1,7 @@
-import axios from 'axios'; // We'll use axios for API calls
 import gsap from 'gsap';
 import { ArrowDown, ArrowUp, Download, Filter, Search } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import api from '../utils/api';
 
 const ApplicationPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,18 +20,11 @@ const ApplicationPage = () => {
     total: 0,
     pending: 0,
     approved: 0,
-    rejected: 0,
-    revenue: '₹0L',
-    growth: {
-      total: 0,
-      pending: 0,
-      approved: 0,
-      revenue: 0
-    }
+    rejected: 0
   });
 
   // Get unique courses for filter dropdown
-  const uniqueCourses = ['All', ...new Set(applications.map(app => app.course))];
+  const uniqueCourses = ['All', ...new Set(applications?.map(app => app.course) || [])];
 
   // Refs for GSAP animations
   const headerRef = useRef(null);
@@ -44,8 +37,24 @@ const ApplicationPage = () => {
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/applications');
-      setApplications(response.data.data);
+      const response = await api.get('/admin/applications');
+      if (response.data.success && response.data.data) {
+        // Format the applications data
+        const formattedApplications = response.data.data.map(app => ({
+          id: app._id,
+          name: app.name || 'Unknown',
+          email: app.email || 'No email',
+          phone: app.phone || 'N/A',
+          course: app.course || 'Not specified',
+          status: app.status.charAt(0).toUpperCase() + app.status.slice(1),
+          date: new Date(app.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })
+        }));
+        setApplications(formattedApplications);
+      }
       setLoading(false);
     } catch (err) {
       console.error('Error fetching applications:', err);
@@ -54,11 +63,19 @@ const ApplicationPage = () => {
     }
   };
 
-  // Fetch dashboard statistics
+  // Fetch dashboard stats
   const fetchDashboardStats = async () => {
     try {
-      const response = await axios.get('/api/applications/stats/dashboard');
-      setDashboardStats(response.data.data);
+      const response = await api.get('/admin/count-by-status');
+      if (response.data.success) {
+        const stats = {
+          total: response.data.data.reduce((sum, item) => sum + item.count, 0),
+          pending: response.data.data.find(item => item._id === 'pending')?.count || 0,
+          approved: response.data.data.find(item => item._id === 'approved')?.count || 0,
+          rejected: response.data.data.find(item => item._id === 'rejected')?.count || 0
+        };
+        setDashboardStats(stats);
+      }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
     }
@@ -78,48 +95,63 @@ const ApplicationPage = () => {
 
   // Animation effects
   useEffect(() => {
-    // Animation timeline
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    if (!loading && !error) {
+      // Animation timeline
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.fromTo(statsRef.current,
-      { opacity: 0, y: -20 },
-      { opacity: 1, y: 0, duration: 0.5 }
-    );
+      if (statsRef.current) {
+        tl.fromTo(statsRef.current,
+          { opacity: 0, y: -20 },
+          { opacity: 1, y: 0, duration: 0.5 }
+        );
+      }
 
-    tl.fromTo(headerRef.current,
-      { opacity: 0, y: -20 },
-      { opacity: 1, y: 0, duration: 0.5 },
-      "-=0.3"
-    );
+      if (headerRef.current) {
+        tl.fromTo(headerRef.current,
+          { opacity: 0, y: -20 },
+          { opacity: 1, y: 0, duration: 0.5 },
+          "-=0.3"
+        );
+      }
 
-    tl.fromTo(filtersRef.current,
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.5 },
-      "-=0.3"
-    );
+      if (filtersRef.current) {
+        tl.fromTo(filtersRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5 },
+          "-=0.3"
+        );
+      }
 
-    tl.fromTo(tableRef.current,
-      { opacity: 0, y: 30 },
-      { opacity: 1, y: 0, duration: 0.5 },
-      "-=0.3"
-    );
+      if (tableRef.current) {
+        tl.fromTo(tableRef.current,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.5 },
+          "-=0.3"
+        );
+      }
 
-    tl.fromTo(paginationRef.current,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.5 },
-      "-=0.3"
-    );
+      if (paginationRef.current) {
+        tl.fromTo(paginationRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5 },
+          "-=0.3"
+        );
+      }
 
-    // Animate rows individually
-    gsap.fromTo('.table-row',
-      { opacity: 0, x: -20 },
-      { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, delay: 0.5 }
-    );
+      // Animate rows individually
+      const tableRows = document.querySelectorAll('.table-row');
+      if (tableRows.length > 0) {
+        gsap.fromTo(tableRows,
+          { opacity: 0, x: -20 },
+          { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, delay: 0.5 }
+        );
+      }
 
-    return () => {
-      tl.kill();
-    };
-  }, [loading]);
+      return () => {
+        tl.kill();
+      };
+    }
+  }, [loading, error]);
 
   // Filter and sort applications
   const filteredApplications = applications.filter(app => {
@@ -195,13 +227,16 @@ const ApplicationPage = () => {
       const statusForBackend = newStatus.toLowerCase();
 
       // Call the backend API to update status
-      await axios.put(`/api/applications/${id}/status`, {
+      const response = await api.put(`/admin/applications/${id}`, {
         status: statusForBackend
       });
 
-      // Update local state
+      // Update local state with the response data
       setApplications(applications.map(app =>
-        app.id === id ? { ...app, status: newStatus } : app
+        app.id === id ? { 
+          ...app, 
+          status: response.data.status.charAt(0).toUpperCase() + response.data.status.slice(1)
+        } : app
       ));
 
       // Refresh dashboard stats to reflect the change
@@ -211,7 +246,8 @@ const ApplicationPage = () => {
       gsap.fromTo(`#app-${id} td:nth-child(4) span`,
         { scale: 0.8, backgroundColor: '#fef3c7' },
         {
-          scale: 1, backgroundColor: newStatus === 'Approved' ? '#d1fae5' : '#fee2e2',
+          scale: 1, 
+          backgroundColor: newStatus === 'Approved' ? '#d1fae5' : '#fee2e2',
           color: newStatus === 'Approved' ? '#065f46' : '#991b1b',
           duration: 0.5
         }
@@ -309,9 +345,6 @@ const ApplicationPage = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Applications</p>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{dashboardStats.total}</h3>
             </div>
-            <div className={`${dashboardStats.growth.total > 0 ? 'text-green-500' : 'text-red-500'} text-sm font-medium`}>
-              {dashboardStats.growth.total > 0 ? '+' : ''}{dashboardStats.growth.total}%
-            </div>
           </div>
         </div>
 
@@ -320,9 +353,6 @@ const ApplicationPage = () => {
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Pending Review</p>
               <h3 className="text-2xl font-bold text-yellow-500 dark:text-yellow-400 mt-1">{dashboardStats.pending}</h3>
-            </div>
-            <div className={`${dashboardStats.growth.pending > 0 ? 'text-green-500' : 'text-red-500'} text-sm font-medium`}>
-              {dashboardStats.growth.pending > 0 ? '+' : ''}{dashboardStats.growth.pending}%
             </div>
           </div>
         </div>
@@ -333,20 +363,14 @@ const ApplicationPage = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400">Approved</p>
               <h3 className="text-2xl font-bold text-green-500 dark:text-green-400 mt-1">{dashboardStats.approved}</h3>
             </div>
-            <div className={`${dashboardStats.growth.approved > 0 ? 'text-green-500' : 'text-red-500'} text-sm font-medium`}>
-              {dashboardStats.growth.approved > 0 ? '+' : ''}{dashboardStats.growth.approved}%
-            </div>
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md border border-gray-100 dark:border-gray-700">
           <div className="flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
-              <h3 className="text-2xl font-bold text-blue-500 dark:text-blue-400 mt-1">{dashboardStats.revenue}</h3>
-            </div>
-            <div className={`${dashboardStats.growth.revenue > 0 ? 'text-green-500' : 'text-red-500'} text-sm font-medium`}>
-              {dashboardStats.growth.revenue > 0 ? '+' : ''}{dashboardStats.growth.revenue}%
+              <p className="text-sm text-gray-500 dark:text-gray-400">Rejected</p>
+              <h3 className="text-2xl font-bold text-red-500 dark:text-red-400 mt-1">{dashboardStats.rejected}</h3>
             </div>
           </div>
         </div>
