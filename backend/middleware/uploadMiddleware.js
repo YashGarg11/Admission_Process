@@ -4,23 +4,26 @@ const cloudinary = require('../config/cloudinary');
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'college-admission', // Folder name on Cloudinary
-    allowed_formats: ['jpg', 'png', 'pdf', 'jpeg'], // allowed file types
+  params: (req, file) => {
+    // Dynamically set resource_type to 'raw' for PDFs
+    const isPdf = file.mimetype === 'application/pdf';
+
+    return {
+      folder: 'college-admission',
+      allowed_formats: ['jpg', 'png', 'pdf', 'jpeg'],
+      resource_type: isPdf ? 'raw' : 'image', // ⬅️ important line
+    };
   }
 });
 
-// Set file size limits and improve error handling
-const upload = multer({ 
+const upload = multer({
   storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB limit
+    fileSize: 5 * 1024 * 1024, // 5MB
   },
   fileFilter: (req, file, cb) => {
-    // Check file types
-    if (file.mimetype === 'application/pdf' || 
-        file.mimetype === 'image/jpeg' || 
-        file.mimetype === 'image/png') {
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (validTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error('Unsupported file format. Only PDF, JPG, and PNG are allowed.'), false);
@@ -28,4 +31,4 @@ const upload = multer({
   }
 });
 
-module.exports = upload; 
+module.exports = upload;

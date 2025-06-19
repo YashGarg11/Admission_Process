@@ -1,4 +1,5 @@
 const Application = require('../models/Application');
+const sendMail = require('../utils/SendEmail');
 
 /**
  * Get dashboard statistics for applications
@@ -7,7 +8,6 @@ const Application = require('../models/Application');
  */
 exports.getDashboardStats = async (req, res) => {
   try {
-    // Get counts of applications by status
     const [total, pending, approved, rejected] = await Promise.all([
       Application.countDocuments(),
       Application.countDocuments({ status: 'pending' }),
@@ -15,7 +15,6 @@ exports.getDashboardStats = async (req, res) => {
       Application.countDocuments({ status: 'rejected' })
     ]);
 
-    // Get application trends by day for current week
     const today = new Date();
     const oneWeekAgo = new Date(today);
     oneWeekAgo.setDate(today.getDate() - 7);
@@ -32,23 +31,18 @@ exports.getDashboardStats = async (req, res) => {
           count: { $sum: 1 }
         }
       },
-      {
-        $sort: { "_id": 1 }
-      }
+      { $sort: { "_id": 1 } }
     ]);
 
-    // Calculate revenue (assuming ₹5000 per approved application)
     const revenue = approved * 5000;
 
-    // Create a response with all stats
     const stats = {
       total,
       pending,
       approved,
       rejected,
-      revenue: `₹${(revenue / 100000).toFixed(1)}L`, // Format as ₹X.XL
+      revenue: `₹${(revenue / 100000).toFixed(1)}L`,
       dailyApplications,
-      // Calculate growth rates (mock data for now)
       growth: {
         total: 12,
         pending: 8,
@@ -78,20 +72,18 @@ exports.getDashboardStats = async (req, res) => {
  */
 exports.getRecentApplications = async (req, res) => {
   try {
-    // Get 5 most recent applications with necessary fields
     const recentApplications = await Application.find()
       .select('name email course status createdAt')
       .sort({ createdAt: -1 })
       .limit(5);
 
-    // Format the applications data to match frontend requirements
     const formattedApplications = recentApplications.map(app => {
       return {
         id: app._id,
         name: app.name,
         email: app.email,
         course: app.course || 'Not specified',
-        status: app.status.charAt(0).toUpperCase() + app.status.slice(1), // Capitalize status
+        status: app.status.charAt(0).toUpperCase() + app.status.slice(1),
         date: formatDate(app.createdAt)
       };
     });
@@ -118,22 +110,11 @@ exports.getRecentApplications = async (req, res) => {
 exports.getApplicationDistribution = async (req, res) => {
   try {
     const statusDistribution = await Application.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 }
-        }
-      }
+      { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 
-    // Get distribution by course
     const courseDistribution = await Application.aggregate([
-      {
-        $group: {
-          _id: "$course",
-          count: { $sum: 1 }
-        }
-      }
+      { $group: { _id: "$course", count: { $sum: 1 } } }
     ]);
 
     res.status(200).json({
@@ -166,7 +147,7 @@ function formatDate(date) {
 }
 
 /**
- * Change application status
+ * Change application status and notify the applicant via email
  * @param {Object} req - Express request object with applicationId and status params
  * @param {Object} res - Express response object
  */
@@ -175,7 +156,6 @@ exports.changeApplicationStatus = async (req, res) => {
     const { applicationId } = req.params;
     const { status } = req.body;
 
-    // Validate status
     if (!['pending', 'approved', 'rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -183,7 +163,6 @@ exports.changeApplicationStatus = async (req, res) => {
       });
     }
 
-    // Update application status
     const application = await Application.findByIdAndUpdate(
       applicationId,
       { status },
@@ -196,11 +175,55 @@ exports.changeApplicationStatus = async (req, res) => {
         message: 'Application not found'
       });
     }
+    let subject = '';
+    let text = '';
+    let html = '';
+
+    switch (status) {
+      case 'approved':
+        subject = '🎉 Congratulations! Your Application Has Been Approved';
+        text = `Dear ${application.name},\nYour application for the "${application.course}" course has been approved.\n\nPlease check your dashboard.`;
+        html = `
+      <h2 style="color: #2d6a4f;">Congratulations, ${application.name}!</h2>
+      <p>Your application for the <strong>${application.course}</strong> course has been <span style="color: green;">approved</span>.</p>
+      <p>Please <a href="https://yourcollegeportal.com/login">log in</a> to view next steps.</p>
+      <br>
+      <p style="font-size: 0.9rem; color: #888;">Regards,<br>ABC College Admissions Team</p>
+    `;
+        break;
+
+      case 'rejected':
+        subject = '❌ Application Rejected - ABC College';
+        text = `Dear ${application.name},\nYour application for the "${application.course}" course has been rejected.`;
+        html = `
+      <h2 style="color: #b02a37;">Application Update</h2>
+      <p>Dear ${application.name},</p>
+      <p>We regret to inform you that your application for the <strong>${application.course}</strong> course has been <span style="color: red;">rejected</span>.</p>
+      <p>You may reach out for clarification.</p>
+      <p style="font-size: 0.9rem; color: #888;">ABC College Admissions Team</p>
+    `;
+        break;
+
+      case 'pending':
+        subject = '⏳ Application Status: Pending';
+        text = `Dear ${application.name},\nYour application for the "${application.course}" course is currently pending.`;
+        html = `
+      <h2 style="color: #0d6efd;">Application in Review</h2>
+      <p>Hello ${application.name},</p>
+      <p>Your application for the <strong>${application.course}</strong> course is currently marked as <strong>pending</strong>.</p>
+      <p>We'll notify you as soon as a decision is made.</p>
+      <p style="font-size: 0.9rem; color: #888;">Regards,<br>ABC College</p>
+    `;
+        break;
+    }
+
+    await sendMail(application.email, subject, text, html);
+
 
     res.status(200).json({
       success: true,
       data: application,
-      message: `Application status changed to ${status}`
+      message: `Application status changed to ${status} and email sent to applicant`
     });
   } catch (error) {
     console.error('Status change error:', error);
