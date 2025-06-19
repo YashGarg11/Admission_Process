@@ -184,7 +184,7 @@ exports.changeApplicationStatus = async (req, res) => {
     switch (status) {
       case 'approved':
         subject = '🎉 Congratulations! Your Application Has Been Approved';
-        text = `Dear ${application.name},\nYour application for the "${application.course}" course has been approved.\n\nPlease check your dashboard.`;
+
         html = `
       <h2 style="color: #2d6a4f;">Congratulations, ${application.name}!</h2>
       <p>Your application for the <strong>${application.course}</strong> course has been <span style="color: green;">approved</span>.</p>
@@ -196,7 +196,7 @@ exports.changeApplicationStatus = async (req, res) => {
 
       case 'rejected':
         subject = '❌ Application Rejected - ABC College';
-        text = `Dear ${application.name},\nYour application for the "${application.course}" course has been rejected.`;
+
         html = `
       <h2 style="color: #b02a37;">Application Update</h2>
       <p>Dear ${application.name},</p>
@@ -208,7 +208,7 @@ exports.changeApplicationStatus = async (req, res) => {
 
       case 'pending':
         subject = '⏳ Application Status: Pending';
-        text = `Dear ${application.name},\nYour application for the "${application.course}" course is currently pending.`;
+
         html = `
       <h2 style="color: #0d6efd;">Application in Review</h2>
       <p>Hello ${application.name},</p>

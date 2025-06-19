@@ -14,7 +14,7 @@ const sendMail = async (to, subject, html) => {
       from: `"Admission Portal" <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      text,
+
       html,
     };
 
