@@ -83,7 +83,9 @@ exports.getRecentApplications = async (req, res) => {
         name: app.name,
         email: app.email,
         course: app.course || 'Not specified',
-        status: app.status.charAt(0).toUpperCase() + app.status.slice(1),
+        status: app.status
+          ? app.status.charAt(0).toUpperCase() + app.status.slice(1)
+          : 'Unknown',
         date: formatDate(app.createdAt)
       };
     });
