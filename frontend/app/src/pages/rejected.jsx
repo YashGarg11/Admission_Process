@@ -1,12 +1,14 @@
 import gsap from 'gsap';
-import { Eye, FileText, XCircle } from 'lucide-react';
+import { FileText, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api'; // Adjust path as needed
 
 const RejectedPage = () => {
   const headerRef = useRef(null);
   const contentRef = useRef(null);
   const tableRef = useRef(null);
+  const navigate = useNavigate();
 
   const [rejectedApplications, setRejectedApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,9 +134,11 @@ const RejectedPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.course}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.date}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-                        <Eye size={16} className="mr-1" />
-                        View Details
+                      <button 
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+                        onClick={() => navigate(`/view_student/${app._id}`)}
+                      >
+                        View
                       </button>
                     </td>
                   </tr>

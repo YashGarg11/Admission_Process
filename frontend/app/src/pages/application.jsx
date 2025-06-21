@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { ArrowDown, ArrowUp, Download, Filter, Search } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
 const ApplicationPage = () => {
@@ -13,6 +14,7 @@ const ApplicationPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const applicationsPerPage = 10;
+  const navigate = useNavigate();
 
   // Applications state
   const [applications, setApplications] = useState([]);
@@ -233,8 +235,8 @@ const ApplicationPage = () => {
 
       // Update local state with the response data
       setApplications(applications.map(app =>
-        app.id === id ? { 
-          ...app, 
+        app.id === id ? {
+          ...app,
           status: response.data.status.charAt(0).toUpperCase() + response.data.status.slice(1)
         } : app
       ));
@@ -246,7 +248,7 @@ const ApplicationPage = () => {
       gsap.fromTo(`#app-${id} td:nth-child(4) span`,
         { scale: 0.8, backgroundColor: '#fef3c7' },
         {
-          scale: 1, 
+          scale: 1,
           backgroundColor: newStatus === 'Approved' ? '#d1fae5' : '#fee2e2',
           color: newStatus === 'Approved' ? '#065f46' : '#991b1b',
           duration: 0.5
@@ -534,7 +536,10 @@ const ApplicationPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
+                          <button 
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+                            onClick={() => navigate(`/view_student/${application.id}`)}
+                          >
                             View
                           </button>
 
@@ -586,8 +591,8 @@ const ApplicationPage = () => {
             <div className="flex space-x-2">
               <button
                 className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${currentPage === 1
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                   }`}
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -602,8 +607,8 @@ const ApplicationPage = () => {
                   <button
                     key={pageNum}
                     className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${currentPage === pageNum
-                        ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-700 dark:border-blue-700'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                      ? 'bg-blue-600 text-white border-blue-600 dark:bg-blue-700 dark:border-blue-700'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                       }`}
                     onClick={() => goToPage(pageNum)}
                   >
@@ -614,8 +619,8 @@ const ApplicationPage = () => {
 
               <button
                 className={`px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm ${currentPage === totalPages
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                   }`}
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}

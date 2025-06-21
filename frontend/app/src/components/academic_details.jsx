@@ -81,17 +81,17 @@ export default function AcademicDetailsForm() {
       // Create a minimal FormData with more detailed test data
       const testFormData = new FormData();
       testFormData.append('course', 'Test Course');
-      
+
       // Create arrays with clear, distinct values
       const testNames = files.slice(0, 1).map(file => `Test Name: ${file.name}`);
       const testTypes = files.slice(0, 1).map(() => 'marksheet_10'); // Using a real document type
-      
+
       console.log('Test names array:', testNames);
       console.log('Test types array:', testTypes);
-      
+
       testFormData.append('documentNames', JSON.stringify(testNames));
       testFormData.append('documentTypes', JSON.stringify(testTypes));
-      
+
       // Only add the first file for testing
       testFormData.append('documents', files[0]);
 
@@ -310,24 +310,24 @@ export default function AcademicDetailsForm() {
     // Create form data for file upload
     const formData = new FormData();
     formData.append('course', course);
-    
+
     // Ensure the arrays align with the files
     if (files.length !== customNames.length || files.length !== documentTypes.length) {
       setError("Internal error: Mismatch between files and their metadata. Please refresh and try again.");
       setLoading(false);
       return;
     }
-    
+
     // Log for verification
     console.log('Submission data:');
     console.log('- Files:', files.map(f => f.name));
     console.log('- Names:', customNames);
     console.log('- Types:', documentTypes);
-    
+
     // Convert names and types to JSON strings
     formData.append('documentNames', JSON.stringify(customNames));
     formData.append('documentTypes', JSON.stringify(documentTypes));
-    
+
     // Add files with the correct field name
     files.forEach(file => {
       formData.append('documents', file);
@@ -349,7 +349,7 @@ export default function AcademicDetailsForm() {
               }
             }
           );
-          
+
           // Success handling
           console.log("Success response:", response.data);
           setSuccess(true);
@@ -373,7 +373,7 @@ export default function AcademicDetailsForm() {
           setTimeout(() => {
             navigate('/admission/submission-success');
           }, 2000);
-          
+
         } catch (error) {
           console.error("Error response:", error.response?.data);
           throw new Error(error.response?.data?.message || "Server error processing your academic details.");
