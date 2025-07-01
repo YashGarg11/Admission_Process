@@ -20,7 +20,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: 'https://admission-process-sr5l.vercel.app',
   credentials: true,
 }));
 app.use(express.json());
