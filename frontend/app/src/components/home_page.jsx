@@ -116,7 +116,7 @@ const HomePage = () => {
 
       switch (data.progress) {
         case 1:
-          navigate('//document_personal');
+          navigate('/document_personal');
           break;
         case 2:
           navigate('/course');
@@ -134,7 +134,7 @@ const HomePage = () => {
       if (err.response?.status === 401) {
         navigate('/login');
       } else {
-        navigate('/course');
+        navigate('/document_personal');
       }
     }
   };
