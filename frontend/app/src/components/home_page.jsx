@@ -96,27 +96,24 @@ const HomePage = () => {
 
   const handleApply = async () => {
     try {
-      const token = localStorage.getItem('token');
+      // Check login via secure cookie
+      const sessionRes = await axios.get(`${config.API_BASE_URL}/auth/check-session`, {
+        withCredentials: true,
+      });
 
-      // Check if user is logged in
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+      const user = sessionRes.data.user;
 
-      const res = await axios.post(
+      // Now fetch progress
+      const progressRes = await axios.post(
         `${config.API_BASE_URL}/form/progress`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         }
       );
 
-      const data = res.data;
+      const data = progressRes.data;
 
-      // Navigate based on progress
       switch (data.progress) {
         case 1:
           navigate('/course');
@@ -129,22 +126,19 @@ const HomePage = () => {
           break;
         default:
           navigate('/course');
-          break;
       }
+
     } catch (err) {
       console.error('Progress fetch failed', err);
 
-      // If unauthorized (401), redirect to login
-      if (err.response && err.response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
+      if (err.response?.status === 401) {
         navigate('/login');
       } else {
-        // Other errors, fallback to course selection
         navigate('/course');
       }
     }
   };
+
 
   const features = [
     {
