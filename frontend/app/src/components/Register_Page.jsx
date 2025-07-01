@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { gsap } from 'gsap';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaFacebook, FaGithub, FaGoogle } from "react-icons/fa";
 import config from '../config';
 
@@ -35,28 +35,31 @@ const RegistrationPage = () => {
     }
 
     try {
-      const res = await axios.post(`${config.API_BASE_URL}/auth/register`, formData);
+      const res = await axios.post(
+        `${config.API_BASE_URL}/auth/register`,
+        formData,
+        { withCredentials: true }  // 👈 cookie support
+      );
 
-      setSuccess('Registration successful! You can now log in.');
+      const { user } = res.data;
+      setSuccess('Registration successful! Redirecting...');
       setError('');
       setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirm_Password: '',
-        mobile: '',
-        dob: '',
-        gender: '',
-        address: ''
+        name: '', email: '', password: '', confirm_Password: '',
+        mobile: '', dob: '', gender: '', address: ''
       });
 
       setTimeout(() => {
-        window.location.href = '/login';
+        if (user?.role === 'admin') {
+          window.location.href = '/dashboard';
+        } else {
+          window.location.href = '/home';
+        }
       }, 2000);
 
     } catch (err) {
       console.error(err);
-      if (err.response && err.response.data && err.response.data.message) {
+      if (err.response?.data?.message) {
         setError(err.response.data.message);
       } else {
         setError('An unexpected error occurred.');

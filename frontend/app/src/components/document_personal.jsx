@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { gsap } from "gsap";
 import { AlertCircle, ArrowRight, CheckCircle, FileText, Loader, Mail, MapPin, Phone, User } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import config from "../config";
 
@@ -278,19 +278,19 @@ export default function PersonalDetailsForm() {
       formDataToSend.append("email", formData.email);
       formDataToSend.append("mobile", formData.mobile);
       formDataToSend.append("address", formData.address);
-      
+
       // Check if file is valid before adding to FormData
       if (!file) {
         throw new Error("No file selected");
       }
-      
+
       // Log file details
       console.log("File being uploaded:", {
         name: file.name,
         type: file.type,
         size: `${(file.size / 1024).toFixed(2)} KB`
       });
-      
+
       formDataToSend.append("counselingLetter", file);
 
       // Get token from local storage
@@ -318,12 +318,14 @@ export default function PersonalDetailsForm() {
         `${config.API_BASE_URL}/admission/personal-details`,
         formDataToSend,
         {
+          withCredentials: true, // ✅ SEND the cookie with the request
           headers: {
-            Authorization: `Bearer ${token}`
+            "Content-Type": "multipart/form-data"
           }
         }
       );
-      
+
+
       console.log("Success:", response.data);
 
       // Success animation
@@ -364,42 +366,42 @@ export default function PersonalDetailsForm() {
     } catch (error) {
       console.error("Submission error details:", error);
       console.error("Response data:", error.response?.data);
-      
+
       // Handle "pending application" special case
       if (error.response?.data?.message === "You already have a pending application") {
         console.log("You already have a pending application. Redirecting to academic details...");
-        
+
         // Set success status instead of error
         setSubmitStatus("success");
-        
+
         // Show custom success message for existing applications
         setSuccessMessage("You already have an application in progress. Redirecting to academic details...");
-        
+
         // Redirect to academic details page after 2 seconds
         setTimeout(() => {
           navigate('/admission/academic-details');
         }, 2000);
-        
+
         return;
       }
-      
+
       // For validation errors and other issues
       setIsSubmitting(false);
       setSubmitStatus("error");
-      
+
       // Extract specific error message from response
-      let errorMsg = error.response?.data?.message || 
-                    error.response?.data?.details || 
-                    error.message ||
-                    "An error occurred. Please try again.";
-                    
+      let errorMsg = error.response?.data?.message ||
+        error.response?.data?.details ||
+        error.message ||
+        "An error occurred. Please try again.";
+
       // Display specific validation errors when available
       if (error.response?.status === 400) {
         if (error.response?.data?.details) {
           errorMsg = `Validation Error: ${error.response.data.details}`;
         }
       }
-      
+
       setErrorMessage(errorMsg);
 
       // Error animation with bounce effect

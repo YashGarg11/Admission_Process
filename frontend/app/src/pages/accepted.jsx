@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { CheckCircle, FileText } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api'; // Import the authenticated API utility
+import api from '../utils/api';
 
 const AcceptedPage = () => {
   const headerRef = useRef(null);
@@ -16,42 +16,39 @@ const AcceptedPage = () => {
   const [selectedCourse, setSelectedCourse] = useState('All Courses');
 
   useEffect(() => {
-    // Fetch data from backend
     const fetchAcceptedApplications = async () => {
       try {
         const response = await api.get('/admin/applications', {
-          params: {
-            status: 'approved'
-          }
+          params: { status: 'approved' }
         });
-        
+
         if (response.data.success) {
-          // Add client-side filtering to ensure only approved applications are shown
-          const approvedApps = response.data.data.filter(app => 
-            app.status.toLowerCase() === 'approved'
-          );
+          const approvedApps = response.data.data
+            .filter(app => app.status?.toLowerCase() === 'approved')
+            .map(app => ({
+              ...app,
+              id: app._id // Normalize for frontend use
+            }));
+
           setAcceptedApplications(approvedApps);
         } else {
           setError('Failed to load accepted applications');
         }
-        setLoading(false);
       } catch (err) {
         console.error('Error fetching accepted applications:', err);
         setError('Failed to load accepted applications');
+      } finally {
         setLoading(false);
       }
     };
 
     fetchAcceptedApplications();
 
-    // GSAP animations
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     tl.fromTo(headerRef.current, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.5 });
     tl.fromTo(contentRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, "-=0.3");
 
-    return () => {
-      tl.kill();
-    };
+    return () => tl.kill();
   }, []);
 
   useEffect(() => {
@@ -67,22 +64,40 @@ const AcceptedPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div ref={headerRef}>
         <div className="flex items-center">
           <CheckCircle size={28} className="text-green-500 mr-3" />
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">Accepted Applications</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+            Accepted Applications
+          </h1>
         </div>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">View all accepted student applications</p>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
+          View all accepted student applications
+        </p>
       </div>
 
-      <div ref={contentRef} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-100 dark:border-gray-700">
+      {/* Main Content */}
+      <div
+        ref={contentRef}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-100 dark:border-gray-700"
+      >
+        {/* Top bar */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Accepted Students</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Review and manage accepted applications</p>
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+              Accepted Students
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Review and manage accepted applications
+            </p>
           </div>
           <div className="flex gap-3">
-            <select className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+            <select
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            >
               <option>All Courses</option>
               <option>Computer Science</option>
               <option>Business Administration</option>
@@ -96,6 +111,7 @@ const AcceptedPage = () => {
           </div>
         </div>
 
+        {/* Table */}
         {loading ? (
           <p className="text-center text-gray-600 dark:text-gray-300">Loading accepted applications...</p>
         ) : error ? (
@@ -113,22 +129,24 @@ const AcceptedPage = () => {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {acceptedApplications.map((app) => (
-                  <tr key={app._id || app.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">{app.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.course}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.date}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button 
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
-                        onClick={() => navigate(`/view_student/${app.id}`)}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {acceptedApplications
+                  .filter(app => selectedCourse === 'All Courses' || app.course === selectedCourse)
+                  .map(app => (
+                    <tr key={app.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">{app.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.course}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{app.date}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
+                          onClick={() => navigate(`/view_student/${app.id}`)}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -141,7 +159,9 @@ const AcceptedPage = () => {
               <CheckCircle size={24} className="text-green-600 dark:text-green-400 mr-3" />
               <div>
                 <h3 className="font-medium text-green-800 dark:text-green-300">All Set for Enrollment</h3>
-                <p className="text-sm text-green-600 dark:text-green-400">These students can now proceed with the enrollment process</p>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  These students can now proceed with the enrollment process
+                </p>
               </div>
             </div>
             <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">

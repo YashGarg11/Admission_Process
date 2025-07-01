@@ -156,7 +156,7 @@ export default function CollegeNavbar() {
     <nav ref={navbarRef} className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
       <div
         ref={backgroundRef}
-        className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20"
+        className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20"
         style={{ backdropFilter: 'blur(10px)' }}
       />
 
@@ -178,7 +178,7 @@ export default function CollegeNavbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
-                ABC College
+                ABESEC
               </span>
               <span className="text-xs text-gray-500 group-hover:text-blue-500 transition-colors duration-300">
                 Excellence in Education
@@ -194,8 +194,8 @@ export default function CollegeNavbar() {
                 to={item.path}
                 ref={el => navItemsRef.current[index] = el}
                 className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 flex items-center space-x-2 ${isActiveRoute(item.path)
-                    ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg'
-                    : 'text-gray-700 hover:text-blue-600'
+                  ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg'
+                  : 'text-gray-700 hover:text-blue-600'
                   }`}
                 onMouseEnter={(e) => !isActiveRoute(item.path) && handleNavHover(e.currentTarget, true)}
                 onMouseLeave={(e) => !isActiveRoute(item.path) && handleNavHover(e.currentTarget, false)}
@@ -265,8 +265,8 @@ export default function CollegeNavbar() {
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`flex items-center space-x-3 p-3 rounded-xl transition-all duration-300 ${isActiveRoute(item.path)
-                      ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg'
-                      : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+                    ? 'text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg'
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
                     }`}
                 >
                   <span className="text-lg">{item.icon}</span>

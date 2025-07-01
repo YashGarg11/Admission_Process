@@ -1,18 +1,18 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
-  AlertCircle, Award,
-  BarChart3,
-  Bell,
-  DollarSign,
-  FileText,
-  Menu,
-  MessageSquare, PieChart,
-  Search,
-  Settings,
-  User,
-  UserCheck, Users,
-  X
+    AlertCircle, Award,
+    BarChart3,
+    Bell,
+    DollarSign,
+    FileText,
+    Menu,
+    MessageSquare, PieChart,
+    Search,
+    Settings,
+    User,
+    UserCheck, Users,
+    X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import AcceptedPage from '../pages/accepted';
