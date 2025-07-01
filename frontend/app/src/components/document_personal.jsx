@@ -347,8 +347,6 @@ export default function PersonalDetailsForm() {
 
       // Redirect to next page after 2 seconds
       setTimeout(() => {
-        // For demo purposes, we'll show an alert instead of navigation
-        alert("Would navigate to: /admission/academic-details");
         navigate(`/admission/academic-details`);
       }, 2000);
 
