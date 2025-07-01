@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Mock config for demonstration
 const config = {
-  API_BASE_URL: 'https://api.example.com' // Replace with your actual API URL
+  API_BASE_URL: 'https://admission-process-2.onrender.com/api' // Replace with your actual API URL
 };
 
 // Form validation helpers
