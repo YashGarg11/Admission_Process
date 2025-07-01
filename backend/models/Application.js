@@ -16,9 +16,35 @@ const CounsellingSchema = new mongoose.Schema({
   counselingLetter: { type: String, required: true },
   address: { type: String, required: true },
   course: { type: String },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'success', 'failed'],
+    default: 'pending'
+  },
+  transactionId: {
+    type: String,
+    default: null
+  },
+  amount: {
+    type: Number,
+    default: null
+  },
+  paymentDate: {
+    type: Date,
+    default: null
+  },
+  isPaymentApproved: {
+    type: Boolean,
+    default: false
+  },
   // Use the academicDocumentSchema for storing documents with their names
   academicDocuments: [academicDocumentSchema],
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: "pending" },
+  progress: {
+    course: { type: Boolean, default: false },
+    personal: { type: Boolean, default: false },
+    academic: { type: Boolean, default: false },
+  },
   idCardUrl: {
     type: String,
     default: null

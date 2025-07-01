@@ -1,24 +1,22 @@
 const Application = require("../models/Application");
+const { uploadToS3 } = require('../middleware/uploadMiddleware');
 
 exports.submitPersonalDetails = async (req, res) => {
   try {
     const { name, email, mobile, address } = req.body;
-    
-    // Trim all fields to remove extra spaces
-    const trimmedName = name ? name.trim() : '';
-    const trimmedEmail = email ? email.trim() : '';
-    const trimmedMobile = mobile ? mobile.trim() : '';
-    const trimmedAddress = address ? address.trim() : '';
-    
-    // Check if required fields are provided
+
+    const trimmedName = name?.trim() || '';
+    const trimmedEmail = email?.trim() || '';
+    const trimmedMobile = mobile?.trim() || '';
+    const trimmedAddress = address?.trim() || '';
+
     if (!trimmedName || !trimmedEmail || !trimmedMobile || !trimmedAddress) {
       return res.status(400).json({
         message: "Missing required fields",
         details: "Name, email, mobile, and address are required"
       });
     }
-    
-    // Check if file was uploaded
+
     if (!req.file) {
       return res.status(400).json({
         message: "Missing counseling letter",
@@ -26,9 +24,9 @@ exports.submitPersonalDetails = async (req, res) => {
       });
     }
 
-    const counselingLetter = req.file.path;
+    // ✅ Corrected usage
+    const s3Url = await uploadToS3(req.file, 'counseling');
 
-    // Check if user already has a pending application
     const existingApplication = await Application.findOne({
       user: req.user._id,
       status: "pending"
@@ -42,100 +40,117 @@ exports.submitPersonalDetails = async (req, res) => {
 
     const newApplication = new Application({
       user: req.user._id,
-      name,
-      email,
-      mobile,
-      address,
-      counselingLetter,
+      name: trimmedName,
+      email: trimmedEmail,
+      mobile: trimmedMobile,
+      address: trimmedAddress,
+      counselingLetter: s3Url,
+      progress: {
+        course: true,
+        personal: true,
+        academic: false,
+      }
     });
 
     await newApplication.save();
 
     res.status(201).json({
       success: true,
-      message: "Personal details and counseling letter submitted successfully!",
+      message: "Personal details submitted successfully!",
       applicationId: newApplication._id
     });
   } catch (err) {
     console.error("Error in submitPersonalDetails:", err);
-    res.status(500).json({
-      message: "Server error processing your application",
-      error: err.message
-    });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-
-
-
-
-
 exports.submitAcademicDetails = async (req, res) => {
   try {
-    const { course, documentNames } = req.body;
-    
-    // Validate course
-    if (!course) {
-      return res.status(400).json({
-        message: "Course selection is required"
+    const userId = req.user._id;
+    const files = req.files;
+
+    const academicDocuments = [];
+
+    for (const key in files) {
+      const file = files[key][0];
+
+      // ✅ Corrected usage
+      const s3Url = await uploadToS3(file, 'academic');
+
+      academicDocuments.push({
+        path: s3Url,
+        name: file.originalname,
+        type: key,
       });
     }
 
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
-        message: "Academic documents are required"
-      });
-    }
+    const updated = await Application.findOneAndUpdate(
+      { user: userId },
+      {
+        $push: { academicDocuments: { $each: academicDocuments } },
+        $set: { "progress.academic": true }
+      },
+      { new: true }
+    );
 
-    // Validate document names
-    if (!documentNames) {
-      return res.status(400).json({
-        message: "Document names are required for each file"
-      });
+    if (!updated) {
+      return res.status(404).json({ message: "Application not found" });
     }
-    
-    // Convert to array if it's a single value
-    const namesArray = Array.isArray(documentNames) ? documentNames : [documentNames];
-    
-    // Check if names match number of uploaded files
-    if (namesArray.length !== req.files.length) {
-      return res.status(400).json({
-        message: "Number of document names must match number of files",
-        details: `You uploaded ${req.files.length} files but provided ${namesArray.length} names`
-      });
-    }
-    
-    // Create documents array with paths and names
-    const documents = req.files.map((file, index) => ({
-      path: file.path,
-      name: namesArray[index]
-    }));
-
-    const application = await Application.findOne({ 
-      user: req.user._id, 
-      status: "pending" 
-    });
-
-    if (!application) {
-      return res.status(404).json({
-        message: "Application not found. Please submit personal details first"
-      });
-    }
-
-    application.course = course;
-    application.academicDocuments = documents;
-    await application.save();
 
     res.status(200).json({
-      success: true,
-      message: "Academic details and documents submitted successfully!",
-      applicationId: application._id
+      message: "Academic documents uploaded successfully",
+      data: updated
     });
   } catch (err) {
-    console.error("Error in submitAcademicDetails:", err);
-    res.status(500).json({
-      message: "Server error processing your academic details",
-      error: err.message 
+    console.error("Upload Error:", err);
+    res.status(500).json({ message: "Upload failed", error: err.message });
+  }
+};
+
+exports.getFormProgress = async (req, res) => {
+  try {
+    const application = await Application.findOne({ user: req.user._id });
+
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    // Convert progress object to numeric stage
+    const progressObject = application.progress || {};
+    let progressStep = 1;
+
+    if (progressObject.course && !progressObject.personal) progressStep = 2;
+    else if (progressObject.course && progressObject.personal && !progressObject.academic) progressStep = 3;
+    else if (progressObject.course && progressObject.personal && progressObject.academic) progressStep = 4;
+
+    res.status(200).json({ progress: progressStep });
+  } catch (err) {
+    console.error("Get Progress Error:", err);
+    res.status(500).json({ message: "Unable to fetch progress", error: err.message });
+  }
+};
+
+exports.submitCourse = async (req, res) => {
+  try {
+    const { course } = req.body;
+
+    if (!course) {
+      return res.status(400).json({ message: 'Course is required' });
+    }
+
+    const updatedApp = await Application.findOneAndUpdate(
+      { user: req.user._id },
+      { course, 'progress.course': true },
+      { new: true, upsert: true }
+    );
+
+    res.status(200).json({
+      message: 'Course saved successfully',
+      application: updatedApp,
     });
+  } catch (error) {
+    console.error('Error saving course:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -1,34 +1,29 @@
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('../config/cloudinary');
+const { PutObjectCommand } = require('@aws-sdk/client-s3');
+const s3 = require('../config/awsS3');
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: (req, file) => {
-    // Dynamically set resource_type to 'raw' for PDFs
-    const isPdf = file.mimetype === 'application/pdf';
+const storage = multer.memoryStorage(); // store file in memory
+const upload = multer({ storage });
 
-    return {
-      folder: 'college-admission',
-      allowed_formats: ['jpg', 'png', 'pdf', 'jpeg'],
-      resource_type: isPdf ? 'raw' : 'image', // ⬅️ important line
-    };
-  }
-});
+const uploadToS3 = async (file, folder = 'admission') => {
+  const timestamp = Date.now();
+  const key = `${folder}/${timestamp}_${file.originalname}`;
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-  },
-  fileFilter: (req, file, cb) => {
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (validTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Unsupported file format. Only PDF, JPG, and PNG are allowed.'), false);
-    }
-  }
-});
+  const command = new PutObjectCommand({
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: key,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+    // ✅ Remove this line to avoid ACL error
+    // ACL: 'public-read',
+  });
 
-module.exports = upload;
+  await s3.send(command);
+
+  return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+};
+
+module.exports = {
+  upload,
+  uploadToS3,
+};

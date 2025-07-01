@@ -9,7 +9,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
 const admissionRoutes = require('./routes/admissionRoutes');
 const statusRoutes = require('./routes/StatusRoutes');
-
+const cookieParser = require('cookie-parser');
+const paymentRoutes = require('./routes/paymentRoutes');
 dotenv.config();
 
 // Connect to MongoDB
@@ -18,9 +19,13 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Session configuration
 app.use(session({
@@ -51,7 +56,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admission", admissionRoutes);
 app.use("/api/status", statusRoutes);
-
+app.use("/api/payment", paymentRoutes);
 // Server Start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

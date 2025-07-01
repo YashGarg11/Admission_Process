@@ -1,9 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const passport = require("passport");
 const sendMail = require('../utils/SendEmail');
-
 
 exports.registerUser = async (req, res) => {
   try {
@@ -12,12 +10,11 @@ exports.registerUser = async (req, res) => {
     if (password !== confirm_Password) {
       return res.status(400).json({ message: 'Passwords do not match' });
     }
-    // Basic validation
+
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email and password are required" });
     }
 
-    // Password validation
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters long" });
     }
@@ -25,10 +22,15 @@ exports.registerUser = async (req, res) => {
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: "User already exists" });
 
-    const newUser = await User.create({ name, email, password, confirm_Password, mobile, address, gender, dob, });
+    const newUser = await User.create({ name, email, password, confirm_Password, mobile, address, gender, dob });
 
-    const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+    // ✅ Generate token and set cookie
+    const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 3600000 // 1 hour
     });
 
     await sendMail(
@@ -48,20 +50,13 @@ exports.registerUser = async (req, res) => {
         address: newUser.address,
         gender: newUser.gender,
         dob: newUser.dob,
-        token
-      },
-      token,
+      }
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
-
-
-
-
 };
-
 
 
 
@@ -69,7 +64,6 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
@@ -81,17 +75,24 @@ exports.loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+      expiresIn: "1h"
     });
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 3600000 // 1 hour
+    });
 
     await sendMail(
       user.email,
       "🔐 Login Alert - Admission Portal",
       `<p>Hi ${user.name},</p><p>You just logged into your account. If this wasn't you, please contact support.</p>`
     );
+
     res.status(200).json({
-      token,
+      message: "Login successful",
       user: {
         id: user._id,
         name: user.name,
@@ -104,58 +105,27 @@ exports.loginUser = async (req, res) => {
     console.error(err);
     res.status(500).json({ message: err.message });
   }
-
-
-
-
 };
+// exports.logoutUser = (req, res) => {
+//   try {
+//     res.clearCookie("token");
+//     res.status(200).json({ message: "Logout successful" });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+exports.checkSession = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: "No token" });
 
-// New functions for social login
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-// Handle Google authentication success
-exports.googleAuthCallback = (req, res, next) => {
-  passport.authenticate('google', async (err, user) => {
-    if (err) return next(err);
-    if (!user) return res.status(401).json({ message: "Authentication failed" });
-
-    // Generate token
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
-
-    return res.status(200).json({
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        mobile: user.mobile || '',
-        avatar: user.avatar || ''
-      }
-    });
-  })(req, res, next);
-};
-
-// Generic social auth success handler (alternative approach)
-exports.socialAuthSuccess = (req, res) => {
-  // Generate JWT token for the authenticated user
-  const token = jwt.sign(
-    { id: req.user._id, role: req.user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
-
-  // Return user data and token
-  res.status(200).json({
-    token,
-    user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email || '',
-      role: req.user.role,
-      mobile: req.user.mobile || '',
-      avatar: req.user.avatar || ''
-    }
-  });
+    return res.status(200).json({ user });
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
 };
