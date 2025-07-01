@@ -1,9 +1,12 @@
 // src/pages/Course.jsx
 
+import axios from 'axios';
 import { gsap } from 'gsap';
 import { AlertTriangle, ArrowRight, BookOpen, Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import config from '../config'; // Assuming you have a config file for API base URL
+
 
 const Course = () => {
   const [courses, setCourses] = useState([]);
