@@ -125,7 +125,7 @@ const HomePage = () => {
           navigate('/document_academic');
           break;
         default:
-          navigate('/course');
+          navigate('/document_personal');
       }
 
     } catch (err) {
