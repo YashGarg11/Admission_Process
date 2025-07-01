@@ -116,10 +116,10 @@ const HomePage = () => {
 
       switch (data.progress) {
         case 1:
-          navigate('/course');
+          navigate('//document_personal');
           break;
         case 2:
-          navigate('/document_personal');
+          navigate('/course');
           break;
         case 3:
           navigate('/document_academic');
