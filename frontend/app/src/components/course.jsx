@@ -1,24 +1,22 @@
-// src/pages/Course.jsx
-
 import axios from 'axios';
 import { gsap } from 'gsap';
-import { AlertTriangle, ArrowRight, BookOpen, Check } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BookOpen, Check, Loader } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import config from '../config'; // Assuming you have a config file for API base URL
-
+import config from '../config'; // Make sure config.API_BASE_URL is correct
 
 const Course = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const containerRef = useRef(null);
   const navigate = useNavigate();
 
-  const API_BASE_URL = 'https://admission-process-2.onrender.com/api';
-
-  // Animation on mount
+  // Animate entry
   useEffect(() => {
     gsap.from(containerRef.current, {
       opacity: 1,
@@ -39,7 +37,40 @@ const Course = () => {
     ]);
   }, []);
 
+  // Check authentication
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      try {
+        const response = await axios.get(`${config.API_BASE_URL}/auth/check-session`, {
+          withCredentials: true,
+        });
+
+        if (response.data.user) {
+          setUserInfo(response.data.user);
+          setIsAuthenticated(true);
+          console.log('Authenticated user:', response.data.user);
+        }
+      } catch (err) {
+        console.error('Authentication check failed:', err);
+        setError('Please login to continue.');
+        setIsAuthenticated(false);
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuthentication();
+  }, [navigate]);
+
   const handleSubmit = async () => {
+    if (!isAuthenticated || !userInfo) {
+      setError('Authentication failed. Please login again.');
+      return;
+    }
+
     if (!selectedCourse) {
       setError('Please select a course');
       setSuccess('');
@@ -51,7 +82,7 @@ const Course = () => {
         `${config.API_BASE_URL}/admission/course`,
         { course: selectedCourse },
         {
-          withCredentials: true, // sends cookie for user auth
+          withCredentials: true,
           headers: {
             'Content-Type': 'application/json',
           },
@@ -65,11 +96,22 @@ const Course = () => {
         navigate('/document_personal');
       }, 1000);
     } catch (err) {
-      setError('Failed to submit course');
+      setError(
+        err.response?.data?.message || 'Failed to submit course. Try again.'
+      );
       setSuccess('');
-      console.error(err);
+      console.error('Submission error:', err);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-white">
+        <Loader className="animate-spin h-8 w-8 text-blue-600" />
+        <p className="ml-3 text-gray-600">Verifying session...</p>
+      </div>
+    );
+  }
 
   return (
     <div
