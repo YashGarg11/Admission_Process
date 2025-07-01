@@ -93,7 +93,7 @@ const Course = () => {
       setError('');
 
       setTimeout(() => {
-        navigate('/document_personal');
+        navigate('admission/academic-details');
       }, 1000);
     } catch (err) {
       setError(

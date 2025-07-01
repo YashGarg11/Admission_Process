@@ -354,7 +354,7 @@ export default function PersonalDetailsForm() {
 
       // Redirect to next page after 2 seconds
       setTimeout(() => {
-        navigate(`/admission/academic-details`);
+        navigate(`/admission/course`);
       }, 2000);
 
     } catch (error) {
@@ -374,7 +374,7 @@ export default function PersonalDetailsForm() {
         // Redirect to academic details page after 2 seconds
         setTimeout(() => {
           // Navigate to academic details page
-          navigate('/admission/academic-details');
+          navigate('/admission/course');
         }, 2000);
 
         return;
