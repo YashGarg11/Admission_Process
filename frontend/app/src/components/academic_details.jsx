@@ -91,6 +91,16 @@ const AcademicDocuments = () => {
     }
   };
 
+  // ✅ CORRECT PLACE
+  useEffect(() => {
+    if (submitStatus === 'success') {
+      const timeout = setTimeout(() => {
+        navigate('/dashboard');
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [submitStatus, navigate]);
+
   const handleFileChange = (e, key) => {
     const file = e.target.files[0];
     if (file) {
