@@ -1,6 +1,5 @@
 const Application = require("../models/Application");
 const { uploadToS3 } = require('../middleware/uploadMiddleware');
-const mongoose = require("mongoose");
 
 exports.submitPersonalDetails = async (req, res) => {
   try {
@@ -156,7 +155,6 @@ exports.getFormProgress = async (req, res) => {
   }
 };
 
-
 exports.submitCourse = async (req, res) => {
   try {
     const { course } = req.body;
@@ -165,28 +163,23 @@ exports.submitCourse = async (req, res) => {
       return res.status(400).json({ message: 'Course is required' });
     }
 
-    if (!req.user || !req.user._id) {
-      return res.status(401).json({ message: 'User not found in request' });
-    }
-
-    // 🧠 Convert to ObjectId safely
-    const userId = new mongoose.Types.ObjectId(req.user._id);
-
-    // Check if application exists for this user
-    let application = await Application.findOne({ user: userId });
+    // ✅ Find existing application first
+    let application = await Application.findOne({ user: req.user._id });
 
     if (application) {
-      // Update the course
-      application.course = course;
-      application.progress.course = true;
-      await application.save();
+      // ✅ Update existing application
+      application = await Application.findOneAndUpdate(
+        { user: req.user._id },
+        {
+          course,
+          'progress.course': true
+        },
+        { new: true }
+      );
     } else {
-      // Create new application
+      // ✅ Create new application if none exists
       application = new Application({
-        user: userId,
-        name: req.user.name,
-        email: req.user.email,
-        mobile: req.user.mobile,
+        user: req.user._id,
         course,
         progress: {
           course: true,
@@ -194,15 +187,13 @@ exports.submitCourse = async (req, res) => {
           academic: false,
         }
       });
-
       await application.save();
     }
 
     res.status(200).json({
       message: 'Course saved successfully',
-      application
+      application: application,
     });
-
   } catch (error) {
     console.error('Error saving course:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
