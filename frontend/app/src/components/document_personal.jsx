@@ -315,6 +315,13 @@ export default function PersonalDetailsForm() {
 
       console.log("Success:", response.data);
 
+      // ✅ Handle both new submissions and updates
+      const isUpdate = response.data.isUpdate;
+      const successMsg = isUpdate
+        ? "Personal details updated successfully!"
+        : "Personal details submitted successfully!";
+      setSuccessMessage(successMsg);
+
       // Success animation
       const tl = gsap.timeline();
 
