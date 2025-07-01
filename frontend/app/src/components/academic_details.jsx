@@ -95,7 +95,7 @@ const AcademicDocuments = () => {
   useEffect(() => {
     if (submitStatus === 'success') {
       const timeout = setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/home');
       }, 3000);
       return () => clearTimeout(timeout);
     }
@@ -241,7 +241,7 @@ const AcademicDocuments = () => {
         setSubmitStatus('success');
         // Navigate to next step after successful upload
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/home');
         }, 3000);
       } else {
         throw new Error('Invalid response: Missing user association or document URLs');
