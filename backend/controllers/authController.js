@@ -28,8 +28,8 @@ exports.registerUser = async (req, res) => {
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      secure: true,               // ✅ must be true for SameSite=None to work on HTTPS
+      sameSite: "None",
       maxAge: 3600000 // 1 hour
     });
 
@@ -80,8 +80,8 @@ exports.loginUser = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      secure: true,               // ✅ must be true for SameSite=None to work on HTTPS
+      sameSite: "None",
       maxAge: 3600000 // 1 hour
     });
 
