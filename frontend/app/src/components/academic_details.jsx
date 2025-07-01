@@ -1,14 +1,22 @@
-// src/pages/AcademicDocuments.jsx
 import axios from 'axios';
-import { AlertCircle, ArrowRight, CheckCircle, FileText, Loader, Upload, X } from 'lucide-react';
-import { useState } from 'react';
-import config from "../config";
+import { AlertCircle, ArrowRight, CheckCircle, FileText, Loader, Shield, Upload, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// Mock config for demonstration
+const config = {
+  API_BASE_URL: 'https://admission-process-2.onrender.com/api'
+};
 
 const AcademicDocuments = () => {
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState({});
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
 
   const documentLabels = [
     { key: 'marksheet_10', label: '10th Marksheet', required: true },
@@ -22,6 +30,63 @@ const AcademicDocuments = () => {
     { key: 'passport_photo', label: 'Passport Photo', required: true },
     { key: 'signature', label: 'Signature', required: true },
   ];
+
+  // Check authentication and get user info
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      try {
+        const response = await axios.get(`${config.API_BASE_URL}/auth/check-session`, {
+          withCredentials: true
+        });
+
+        if (response.data.user) {
+          setUserInfo(response.data.user);
+          setIsAuthenticated(true);
+          console.log('Authenticated user:', response.data.user);
+
+          // Load existing documents if any
+          await loadExistingDocuments(response.data.user.id);
+        }
+      } catch (error) {
+        console.error('Authentication check failed:', error);
+        setIsAuthenticated(false);
+        setError('Please login to access this page');
+
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
+      }
+    };
+
+    checkAuthentication();
+  }, [navigate]);
+
+  // Load existing documents for the user
+  const loadExistingDocuments = async (userId) => {
+    try {
+      const response = await axios.get(`${config.API_BASE_URL}/admission/documents/${userId}`, {
+        withCredentials: true
+      });
+
+      if (response.data.documents) {
+        // Convert S3 URLs back to file representation for display
+        const existingDocs = {};
+        Object.keys(response.data.documents).forEach(key => {
+          if (response.data.documents[key]) {
+            existingDocs[key] = {
+              name: response.data.documents[key].split('/').pop(),
+              url: response.data.documents[key],
+              uploaded: true
+            };
+          }
+        });
+        setDocuments(existingDocs);
+      }
+    } catch (error) {
+      console.log('No existing documents found or error loading:', error.message);
+    }
+  };
 
   const handleFileChange = (e, key) => {
     const file = e.target.files[0];
@@ -38,11 +103,28 @@ const AcademicDocuments = () => {
         return;
       }
 
+      // Add user ID and timestamp to filename for uniqueness
+      const timestamp = Date.now();
+      const userId = userInfo?.id || 'unknown';
+      const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const uniqueFileName = `${userId}_${timestamp}_${sanitizedFileName}`;
+
+      // Create a new file object with unique name
+      const renamedFile = new File([file], uniqueFileName, { type: file.type });
+
       setDocuments({
         ...documents,
-        [key]: file,
+        [key]: renamedFile,
       });
       setError(''); // Clear any previous errors
+
+      console.log(`File selected for ${key}:`, {
+        originalName: file.name,
+        uniqueName: uniqueFileName,
+        size: file.size,
+        type: file.type,
+        userId: userId
+      });
     }
   };
 
@@ -50,9 +132,19 @@ const AcademicDocuments = () => {
     const newDocuments = { ...documents };
     delete newDocuments[key];
     setDocuments(newDocuments);
+
+    // Clear upload progress for this file
+    const newProgress = { ...uploadProgress };
+    delete newProgress[key];
+    setUploadProgress(newProgress);
   };
 
   const handleSubmit = async () => {
+    if (!isAuthenticated || !userInfo) {
+      setError('You must be logged in to upload documents');
+      return;
+    }
+
     setLoading(true);
     setSuccess('');
     setError('');
@@ -67,25 +159,96 @@ const AcademicDocuments = () => {
       return;
     }
 
-    const formData = new FormData();
-    Object.keys(documents).forEach((key) => {
-      if (documents[key]) {
-        formData.append(key, documents[key]);
-      }
-    });
-
     try {
-      await axios.post(`${config.API_BASE_URL}/admission/academic-details`, formData, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const formData = new FormData();
+
+      // Add user identification
+      formData.append('userId', userInfo.id);
+      formData.append('userEmail', userInfo.email);
+
+      // Add timestamp for this submission
+      formData.append('submissionTimestamp', new Date().toISOString());
+
+      // Add all documents with proper naming
+      Object.keys(documents).forEach((key) => {
+        if (documents[key] && !documents[key].uploaded) {
+          formData.append(key, documents[key]);
+          console.log(`Adding document ${key} for user ${userInfo.id}:`, documents[key].name);
+        }
       });
 
-      setSuccess('Documents uploaded successfully!');
+      // Log the submission attempt
+      console.log('Submitting documents for user:', {
+        userId: userInfo.id,
+        email: userInfo.email,
+        documentCount: Object.keys(documents).filter(key => documents[key] && !documents[key].uploaded).length,
+        timestamp: new Date().toISOString()
+      });
+
+      const response = await axios.post(
+        `${config.API_BASE_URL}/admission/academic-details`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            console.log(`Upload progress: ${percentCompleted}%`);
+          }
+        }
+      );
+
+      console.log('Documents uploaded successfully:', response.data);
+
+      // Verify the response contains the S3 URLs and user association
+      if (response.data.documents && response.data.userId) {
+        console.log('S3 URLs saved for user:', {
+          userId: response.data.userId,
+          documents: response.data.documents
+        });
+
+        // Update local state with uploaded document URLs
+        const updatedDocs = { ...documents };
+        Object.keys(response.data.documents).forEach(key => {
+          if (response.data.documents[key]) {
+            updatedDocs[key] = {
+              name: response.data.documents[key].split('/').pop(),
+              url: response.data.documents[key],
+              uploaded: true
+            };
+          }
+        });
+        setDocuments(updatedDocs);
+
+        setSuccess(`Documents uploaded successfully! All files have been securely stored and associated with your account (${userInfo.email}).`);
+
+        // Navigate to next step after successful upload
+        setTimeout(() => {
+          navigate('/admission/confirmation');
+        }, 3000);
+      } else {
+        throw new Error('Invalid response: Missing user association or document URLs');
+      }
+
     } catch (err) {
-      console.error(err);
-      const errorMessage = err.response?.data?.message || 'Upload failed. Please try again.';
+      console.error('Upload error:', err);
+      console.error('Error response:', err.response?.data);
+
+      let errorMessage = 'Upload failed. Please try again.';
+
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Authentication failed. Please login again.';
+        setTimeout(() => navigate('/login'), 2000);
+      } else if (err.response?.status === 403) {
+        errorMessage = 'Access denied. Please ensure you have permission to upload documents.';
+      } else if (err.response?.status === 413) {
+        errorMessage = 'Files too large. Please reduce file sizes and try again.';
+      }
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -98,6 +261,18 @@ const AcademicDocuments = () => {
     }
     return <FileText className="text-blue-500" size={20} />;
   };
+
+  // Show loading state while checking authentication
+  if (!isAuthenticated && !error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="animate-spin h-12 w-12 text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600">Verifying authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -113,6 +288,14 @@ const AcademicDocuments = () => {
           <p className="mt-3 text-lg text-gray-600">
             Upload your academic certificates and documents
           </p>
+
+          {/* User Info Display */}
+          {userInfo && (
+            <div className="mt-4 inline-flex items-center bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm">
+              <Shield className="w-4 h-4 mr-2" />
+              Logged in as: {userInfo.email} (ID: {userInfo.id})
+            </div>
+          )}
         </div>
 
         <div className="bg-white shadow-lg rounded-2xl p-8 border border-gray-100">
@@ -164,7 +347,7 @@ const AcademicDocuments = () => {
                 </div>
 
                 {documents[key] ? (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className={`${documents[key].uploaded ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'} border rounded-lg p-3`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         {getFileIcon(documents[key].name)}
@@ -173,8 +356,13 @@ const AcademicDocuments = () => {
                             {documents[key].name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {(documents[key].size / 1024).toFixed(1)} KB
+                            {documents[key].uploaded ? 'Already uploaded' : `${(documents[key].size / 1024).toFixed(1)} KB`}
                           </p>
+                          {documents[key].uploaded && documents[key].url && (
+                            <p className="text-xs text-blue-600 truncate max-w-[200px]">
+                              Stored: {documents[key].url}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <button
@@ -227,7 +415,7 @@ const AcademicDocuments = () => {
           <div className="flex justify-center">
             <button
               onClick={handleSubmit}
-              disabled={loading || Object.keys(documents).length === 0}
+              disabled={loading || Object.keys(documents).length === 0 || !isAuthenticated}
               className="inline-flex items-center px-8 py-3.5 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
             >
               {loading ? (
@@ -255,8 +443,20 @@ const AcademicDocuments = () => {
                   <li>Upload clear, readable copies of your documents</li>
                   <li>Accepted formats: PDF, JPG, PNG (Max 5MB per file)</li>
                   <li>Ensure all information is clearly visible</li>
+                  <li>Documents are securely stored and linked to your account</li>
+                  <li>You can view your uploaded documents in your profile</li>
                 </ul>
               </div>
+            </div>
+          </div>
+
+          {/* Security Notice */}
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            <div className="flex items-center">
+              <Shield className="h-5 w-5 text-gray-500 mr-2" />
+              <p className="text-sm text-gray-600">
+                <strong>Security:</strong> All documents are encrypted and stored securely. Each file is uniquely identified and linked to your account to prevent unauthorized access.
+              </p>
             </div>
           </div>
         </div>

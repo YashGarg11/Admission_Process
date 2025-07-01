@@ -4,7 +4,6 @@ import { gsap } from 'gsap';
 import { AlertTriangle, ArrowRight, BookOpen, Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api.js';
 
 const Course = () => {
   const [courses, setCourses] = useState([]);
@@ -13,6 +12,8 @@ const Course = () => {
   const [success, setSuccess] = useState('');
   const containerRef = useRef(null);
   const navigate = useNavigate();
+
+  const API_BASE_URL = 'https://admission-process-2.onrender.com/api';
 
   // Animation on mount
   useEffect(() => {
@@ -43,9 +44,16 @@ const Course = () => {
     }
 
     try {
-      const res = await api.post('/admission/course', {
-        course: selectedCourse,
-      });
+      const res = await axios.post(
+        `${config.API_BASE_URL}/admission/course`,
+        { course: selectedCourse },
+        {
+          withCredentials: true, // sends cookie for user auth
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       setSuccess('Course selected successfully!');
       setError('');
