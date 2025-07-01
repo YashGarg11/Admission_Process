@@ -159,25 +159,23 @@ exports.submitCourse = async (req, res) => {
   try {
     const { course } = req.body;
 
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Not authorized. User not found in request.' });
+    }
+
     if (!course) {
       return res.status(400).json({ message: 'Course is required' });
     }
 
-    // ✅ Find existing application first
     let application = await Application.findOne({ user: req.user._id });
 
     if (application) {
-      // ✅ Update existing application
       application = await Application.findOneAndUpdate(
         { user: req.user._id },
-        {
-          course,
-          'progress.course': true
-        },
+        { course, 'progress.course': true },
         { new: true }
       );
     } else {
-      // ✅ Create new application if none exists
       application = new Application({
         user: req.user._id,
         course,
@@ -192,8 +190,9 @@ exports.submitCourse = async (req, res) => {
 
     res.status(200).json({
       message: 'Course saved successfully',
-      application: application,
+      application,
     });
+
   } catch (error) {
     console.error('Error saving course:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
