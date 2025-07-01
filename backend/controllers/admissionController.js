@@ -24,47 +24,71 @@ exports.submitPersonalDetails = async (req, res) => {
       });
     }
 
-    // ✅ Corrected usage
+    // ✅ Upload file to S3
     const s3Url = await uploadToS3(req.file, 'counseling');
 
+    // ✅ Check if user already has an application
     const existingApplication = await Application.findOne({
       user: req.user._id,
       status: "pending"
     });
 
+    let application;
+
     if (existingApplication) {
-      return res.status(400).json({
-        message: "You already have a pending application"
+      // ✅ UPDATE existing application instead of rejecting
+      application = await Application.findOneAndUpdate(
+        { user: req.user._id, status: "pending" },
+        {
+          name: trimmedName,
+          email: trimmedEmail,
+          mobile: trimmedMobile,
+          address: trimmedAddress,
+          counselingLetter: s3Url,
+          'progress.personal': true,
+          // Keep course progress if it was already set
+          'progress.course': existingApplication.progress?.course || false
+        },
+        { new: true }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Personal details updated successfully!",
+        applicationId: application._id,
+        isUpdate: true
+      });
+    } else {
+      // ✅ CREATE new application
+      application = new Application({
+        user: req.user._id,
+        name: trimmedName,
+        email: trimmedEmail,
+        mobile: trimmedMobile,
+        address: trimmedAddress,
+        counselingLetter: s3Url,
+        progress: {
+          course: false,
+          personal: true,
+          academic: false,
+        }
+      });
+
+      await application.save();
+
+      return res.status(201).json({
+        success: true,
+        message: "Personal details submitted successfully!",
+        applicationId: application._id,
+        isUpdate: false
       });
     }
 
-    const newApplication = new Application({
-      user: req.user._id,
-      name: trimmedName,
-      email: trimmedEmail,
-      mobile: trimmedMobile,
-      address: trimmedAddress,
-      counselingLetter: s3Url,
-      progress: {
-        course: true,
-        personal: true,
-        academic: false,
-      }
-    });
-
-    await newApplication.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Personal details submitted successfully!",
-      applicationId: newApplication._id
-    });
   } catch (err) {
     console.error("Error in submitPersonalDetails:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 exports.submitAcademicDetails = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -139,15 +163,36 @@ exports.submitCourse = async (req, res) => {
       return res.status(400).json({ message: 'Course is required' });
     }
 
-    const updatedApp = await Application.findOneAndUpdate(
-      { user: req.user._id },
-      { course, 'progress.course': true },
-      { new: true, upsert: true }
-    );
+    // ✅ Find existing application first
+    let application = await Application.findOne({ user: req.user._id });
+
+    if (application) {
+      // ✅ Update existing application
+      application = await Application.findOneAndUpdate(
+        { user: req.user._id },
+        {
+          course,
+          'progress.course': true
+        },
+        { new: true }
+      );
+    } else {
+      // ✅ Create new application if none exists
+      application = new Application({
+        user: req.user._id,
+        course,
+        progress: {
+          course: true,
+          personal: false,
+          academic: false,
+        }
+      });
+      await application.save();
+    }
 
     res.status(200).json({
       message: 'Course saved successfully',
-      application: updatedApp,
+      application: application,
     });
   } catch (error) {
     console.error('Error saving course:', error);
