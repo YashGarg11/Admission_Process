@@ -52,10 +52,10 @@ const App = () => {
                 </ProtectedRoute>
               } />
 
-              <Route path="/course/admission/academic-details" element={<AcademicDetailsForm />} />
+              <Route path="/admission/academic-details" element={<AcademicDetailsForm />} />
               <Route path="/view_student/:id" element={<ViewStudent />} />
               <Route path="/admission_Status" element={<Admission_Status />} />
-              <Route path="/admission/course" element={<CourseSelection />} />
+              <Route path="/course" element={<CourseSelection />} />
 
             </Routes>
           </div>
