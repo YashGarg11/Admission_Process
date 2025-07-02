@@ -362,7 +362,7 @@ export default function PersonalDetailsForm() {
       console.error("Response data:", error.response?.data);
 
       // Handle "pending application" special case
-      if (error.response?.data?.message === "You already have a pending application") {
+      if (error.response?.data?.message === "You already have a pending application here") {
         console.log("You already have a pending application. Redirecting to academic details...");
 
         // Set success status instead of error
