@@ -98,7 +98,7 @@ const Payment = () => {
         setStatus('success');
         setPaymentData(prev => ({
           ...prev,
-          paymentStatus: 'success',
+
           transactionId: transactionId.trim(),
           amount,
           paymentDate: new Date().toISOString(),
