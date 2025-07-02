@@ -244,7 +244,8 @@ const AcademicDocuments = () => {
           navigate('/home');
         }, 3000);
       } else {
-        throw new Error('Invalid response: Missing user association or document URLs');
+
+        navigate('/home');
       }
 
     } catch (err) {
