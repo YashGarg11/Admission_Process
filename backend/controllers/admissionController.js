@@ -95,11 +95,12 @@ exports.submitAcademicDetails = async (req, res) => {
     const files = req.files;
 
     const academicDocuments = [];
+    const documentUrls = {}; // ✅ for frontend
 
     for (const key in files) {
       const file = files[key][0];
 
-      // ✅ Corrected usage
+      // Upload to S3
       const s3Url = await uploadToS3(file, 'academic');
 
       academicDocuments.push({
@@ -107,6 +108,9 @@ exports.submitAcademicDetails = async (req, res) => {
         name: file.originalname,
         type: key,
       });
+
+      // Add to frontend-expected object
+      documentUrls[key] = s3Url;
     }
 
     const updated = await Application.findOneAndUpdate(
@@ -122,9 +126,10 @@ exports.submitAcademicDetails = async (req, res) => {
       return res.status(404).json({ message: "Application not found" });
     }
 
+    // ✅ Send required fields for frontend
     res.status(200).json({
-      message: "Academic documents uploaded successfully",
-      data: updated
+      userId,
+      documents: documentUrls
     });
   } catch (err) {
     console.error("Upload Error:", err);
