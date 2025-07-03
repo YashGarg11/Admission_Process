@@ -116,24 +116,52 @@ const ViewStudent = () => {
           <div>
             <h2 className="text-lg font-semibold mb-2">Documents</h2>
             <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              {(student.documents?.academicDocuments?.length > 0)
-                ? student.documents.academicDocuments.map((doc, idx) => (
-                  <div key={idx} className="flex justify-between items-center border-b pb-2">
+              {student.documents?.academicDocuments?.length > 0 ? (
+                student.documents.academicDocuments.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-200 dark:border-gray-700 p-4 rounded-md mb-3 bg-white dark:bg-gray-800"
+                  >
                     <div className="flex items-center space-x-2">
                       <FileText size={18} className="text-gray-500" />
-                      <span className="capitalize text-sm text-gray-800">{doc.type.replace(/_/g, ' ')}</span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {doc?.type ? doc.type.replace(/_/g, ' ') : 'Unknown Document'}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate max-w-[250px]">
+                          {doc?.name || 'Unnamed File'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex space-x-3">
-                      <button onClick={() => handleView(doc.path)} className="text-blue-600 hover:underline text-sm flex items-center">
-                        <Eye className="w-4 h-4 mr-1" /> View
-                      </button>
-                      <button onClick={() => handleDownload(doc.type, doc.path)} className="text-blue-600 hover:underline text-sm flex items-center">
-                        <Download className="w-4 h-4 mr-1" /> Download
-                      </button>
+
+                    <div className="mt-3 sm:mt-0 flex items-center space-x-3">
+                      {doc?.path && (
+                        <>
+                          <button
+                            onClick={() => handleView(doc.path)}
+                            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                          >
+                            <Eye size={16} className="mr-1" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleDownload(doc?.type || 'document', doc.path)}
+                            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                          >
+                            <Download size={16} className="mr-1" />
+                            Download
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))
-                : <p className="text-gray-500 text-sm">No documents uploaded.</p>}
+              ) : (
+                <div className="text-gray-500 dark:text-gray-400 text-center py-4">
+                  No academic documents uploaded.
+                </div>
+              )}
+
             </div>
           </div>
         </div>
