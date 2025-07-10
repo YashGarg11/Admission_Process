@@ -205,7 +205,7 @@ const HomePage = () => {
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-black via-blue-800 to-purple-800 mb-6 tracking-tight leading-tight">
                 Welcome to
                 <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  ABES ENGINEERING COLLEGE
+                  ABC ENGINEERING COLLEGE
                 </span>
               </h1>
 
