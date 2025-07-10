@@ -178,7 +178,7 @@ export default function CollegeNavbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
-                ABESEC
+                ABC
               </span>
               <span className="text-xs text-gray-500 group-hover:text-blue-500 transition-colors duration-300">
                 Excellence in Education

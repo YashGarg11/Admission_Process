@@ -201,7 +201,7 @@ const LoginPage = () => {
       {/* Login card */}
       <div ref={formRef} className="bg-blue-400/30 backdrop-blur-md p-8 rounded-lg shadow-xl w-96 text-white z-10">
         <div className="text-center mb-6">
-          <h2 className="text-xl font-semibold mb-6">ABES Engineering College</h2>
+          <h2 className="text-xl font-semibold mb-6">ABC Engineering College</h2>
           <h1 className="text-2xl font-bold">Login</h1>
         </div>
 

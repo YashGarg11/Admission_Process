@@ -9,16 +9,7 @@ const IDCard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [approvedPayments, setApprovedPayments] = useState([]);
-
-  const userId = async () => {
-    try {
-      const response = await axios.get(`${config.API_BASE_URL}/auth/me`, { withCredentials: true });
-      return response.data._id; // Assuming the user ID is returned in this format
-    } catch (error) {
-      console.error('Error fetching user ID:', error);
-      return null; // Handle error appropriately
-    }
-  };
+  
 
   // Fetch approved payments on component mount
   useEffect(() => {
