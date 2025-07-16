@@ -10,6 +10,8 @@ import HomePage from './components/home_page';
 import LoginPage from './components/login_page';
 import RegisterPage from './components/Register_Page';
 import './index.css';
+import About from './pages/About';
+import Course from './pages/courses';
 import ViewPayments from './pages/payment';
 import Seats from './pages/seats';
 import ViewStudent from './pages/view_student';
@@ -35,6 +37,8 @@ const App = () => {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path='/payment' element={<payment />} />
+              <Route path='/courses' element={<Course />} />
+
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <AdmissionDashboard />
@@ -56,6 +60,7 @@ const App = () => {
               <Route path="/view_student/:id" element={<ViewStudent />} />
               <Route path="/admission_Status" element={<Admission_Status />} />
               <Route path="/course" element={<CourseSelection />} />
+              <Route path="/about" element={<About />} />
 
             </Routes>
           </div>
