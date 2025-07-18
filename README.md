@@ -29,6 +29,11 @@ The Smart Admission Portal enables seamless digital admissions for colleges/univ
 
 ---
 
+## 🚀 Live Demo
+
+🔗 [Click here to view the live application](https://admission-process-sr5l.vercel.app/)
+
+---
 ## 🚀 Features
 
 ### Student Side
