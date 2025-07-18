@@ -1,228 +1,264 @@
-# College Management System
+# Smart Admission Portal
 
-A comprehensive web-based College Management System built with React, Node.js, and MySQL. This system streamlines the admission process and provides efficient management of student records, courses, and academic activities.
+A comprehensive full-stack admission management system built for educational institutions to streamline student registration, secure file uploads, form tracking, payment processing, and admin approvals — all within a secure and scalable environment.
 
-## Features
+---
 
-### Admission Process
+## 📌 Table of Contents
 
-- Online application submission
-- Document upload and verification
-- Application status tracking
-- Admission fee payment integration
-- Automated email notifications
+* [Overview](#overview)
+* [Features](#features)
+* [Tech Stack](#tech-stack)
+* [Architecture](#architecture)
+* [Project Modules](#project-modules)
+* [Installation Guide](#installation-guide)
+* [Environment Setup](#environment-setup)
+* [API Endpoints](#api-endpoints)
+* [Security Features](#security-features)
+* [Deployment](#deployment)
+* [Screenshots](#screenshots)
+* [Video Demo](#video-demo)
+* [License](#license)
+* [Authors](#authors)
 
-### Student Management
+---
 
-- Student profile management
-- Academic record tracking
-- Course registration
-- Grade management
-- Attendance tracking
+## 📖 Overview
 
-### Course Management
+The Smart Admission Portal enables seamless digital admissions for colleges/universities. Students can apply through a step-by-step guided form with live progress tracking. Admins can manage applicants, review uploads, approve/reject applications, and oversee payment status. The system is designed for high security, scalability, and performance.
 
-- Course catalog
-- Course scheduling
-- Faculty assignment
-- Prerequisite management
-- Course capacity tracking
+---
 
-### Faculty Management
+## 🚀 Features
 
-- Faculty profiles
-- Course assignments
-- Teaching schedule
-- Performance tracking
-- Leave management
+### Student Side
 
-### Administrative Features
+* Registration/Login with HTTP-only cookie authentication
+* Multi-step admission form (Personal, Academic, Course, Documents, Payment, Preview)
+* Resume from where left off (form progress tracking)
+* Upload photos, Aadhar, marksheets, and more to AWS S3
+* Real-time status updates (Submitted, Under Review, Accepted, Rejected)
+* Secure payment integration using JudoPay
 
-- User role management
-- System configuration
-- Report generation
-- Data analytics
-- Audit logging
+### Admin Side
 
-## Tech Stack
+* Admin login with role-based access control
+* Dashboard showing total applications by status
+* View and verify student applications
+* Approve or reject applications
+* View payment confirmation and update status
+
+---
+
+## 🛠 Tech Stack
 
 ### Frontend
 
-- React.js
-- Material-UI
-- Redux for state management
-- Axios for API calls
-- React Router for navigation
+* React.js
+* Tailwind CSS + Custom CSS
+* React Router DOM
+* Axios
+* GSAP for transitions/animations
+* Lenis for smooth scrolling
 
 ### Backend
 
-- Node.js
-- Express.js
-- MySQL database
-- JWT authentication
-- Nodemailer for email notifications
+* Node.js
+* Express.js
+* MongoDB + Mongoose
+* AWS S3 SDK (v3)
+* Multer for file uploads
+* Bcrypt & JWT for authentication
 
-### Development Tools
+### Tools & Services
 
-- Git for version control
-- npm for package management
-- ESLint for code linting
-- Prettier for code formatting
+* MongoDB Atlas
+* AWS S3 Bucket (Manual upload using SDK)
+* JudoPay (or Razorpay alternative)
+* Vercel for frontend hosting
+* Render / Railway / EC2 for backend hosting
 
-## Prerequisites
+---
 
-Before running the application, ensure you have the following installed:
+## 🧱 Architecture
 
-- Node.js (v14 or higher)
-- MySQL (v8.0 or higher)
-- npm or yarn package manager
-
-## Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/yourusername/college-management-system.git
-cd college-management-system
+```
+Student (React UI)
+    ⬇️
+  API Gateway (Express + Node)
+    ⬇️                    ⬇️
+MongoDB (Student Data)   AWS S3 (Document Uploads)
+    ⬇️                    ⬇️
+      Admin Panel       Payment Gateway (JudoPay)
 ```
 
-2. Install frontend dependencies:
+---
+
+## 🧩 Project Modules
+
+1. **Authentication**: Register/login (JWT-based)
+2. **Admission Form**:
+
+   * Step 1: Personal Information
+   * Step 2: Academic Details
+   * Step 3: Course Selection
+   * Step 4: Document Upload
+   * Step 5: Payment
+   * Step 6: Preview & Submit
+3. **Progress Tracking**: MongoDB-stored checkpoints
+4. **Document Upload**: AWS S3 with unique file naming
+5. **Admin Dashboard**: View/manage student submissions
+6. **Secure Payment**: Integrated using payment API (JudoPay)
+7. **Status Handling**: Application status visible to both sides
+
+---
+
+## 💻 Installation Guide
+
+### Clone Frontend
 
 ```bash
-cd frontend
+git clone https://github.com/yourname/admission-frontend.git
+cd admission-frontend
 npm install
-```
-
-3. Install backend dependencies:
-
-```bash
-cd ../backend
-npm install
-```
-
-4. Create a `.env` file in the backend directory with the following variables:
-
-```env
-DB_HOST=localhost
-DB_USER=your_mysql_username
-DB_PASSWORD=your_mysql_password
-DB_NAME=college_management
-JWT_SECRET=your_jwt_secret
-SMTP_HOST=your_smtp_host
-SMTP_PORT=your_smtp_port
-SMTP_USER=your_smtp_username
-SMTP_PASS=your_smtp_password
-```
-
-5. Create a `.env` file in the frontend directory:
-
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-```
-
-## Database Setup
-
-1. Create a MySQL database:
-
-```sql
-CREATE DATABASE college_management;
-```
-
-2. Import the database schema:
-
-```bash
-mysql -u your_username -p college_management < backend/database/schema.sql
-```
-
-## Running the Application
-
-1. Start the backend server:
-
-```bash
-cd backend
 npm run dev
 ```
 
-2. Start the frontend development server:
+### Clone Backend
 
 ```bash
-cd frontend
-npm start
+git clone https://github.com/yourname/admission-backend.git
+cd admission-backend
+npm install
+npm run dev
 ```
 
-The application will be available at:
+---
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+## 🔐 Environment Setup
 
-## Project Structure
+### Backend `.env`
 
 ```
-college-management-system/
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── App.js
-│   └── package.json
-├── backend/
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── utils/
-│   └── server.js
-└── README.md
+PORT=5000
+MONGO_URI=your_mongodb_atlas_url
+JWT_SECRET=your_secure_secret
+AWS_REGION=your_aws_region
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_BUCKET_NAME=your_bucket_name
 ```
 
-## API Documentation
+---
 
-### Authentication Endpoints
+## 🔗 API Endpoints
 
-- POST /api/auth/login - User login
-- POST /api/auth/register - User registration
-- GET /api/auth/profile - Get user profile
+### Auth Routes
 
-### Admission Endpoints
+* `POST /api/auth/register`
+* `POST /api/auth/login`
+* `POST /api/auth/logout`
 
-- POST /api/admissions/apply - Submit application
-- GET /api/admissions/status - Check application status
-- PUT /api/admissions/update - Update application
+### Student Routes
 
-### Student Endpoints
+* `GET /api/student/progress/:userId`
+* `POST /api/student/form/submit`
+* `POST /api/student/upload` (multipart form)
+* `POST /api/student/payment/:userId`
 
-- GET /api/students - Get all students
-- GET /api/students/:id - Get student details
-- PUT /api/students/:id - Update student information
+### Admin Routes
 
-### Course Endpoints
+* `GET /api/admin/students`
+* `GET /api/admin/student/:userId`
+* `POST /api/admin/status/:userId`
+* `POST /api/admin/payment-approval/:userId`
 
-- GET /api/courses - Get all courses
-- POST /api/courses - Create new course
-- PUT /api/courses/:id - Update course details
+---
 
-## Contributing
+## 🛡️ Security Features
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+* All cookies are HTTP-only and secure
+* JWT tokens expire after 1 hour
+* Files validated by MIME type & size before S3 upload
+* Admin routes are protected by middleware and roles
+* MongoDB queries protected with sanitization
 
-## License
+---
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## ☁️ Deployment
 
-## Support
+* **Frontend:** Vercel (automatic CI/CD)
+* **Backend:** Render / Railway / AWS EC2
+* **Database:** MongoDB Atlas (Global Cluster)
+* **File Storage:** AWS S3 (Free Tier up to 5 GB)
+* **Monitoring:** GitHub + Logs
 
-For support, email support@collegemanagementsystem.com or create an issue in the repository.
+---
 
-## Acknowledgments
+## 📸 Screenshots
 
-- Material-UI for the frontend components
-- Express.js team for the backend framework
-- MySQL team for the database system
+### 🧍 Student View
+
+- **Form Fill Steps**  
+  ![Form Step 1](./Screenshot%202025-04-27%20131607.png)
+
+- **Dashboard Overview**  
+  ![Dashboard](./Screenshot%202025-07-17%20121841.png)
+
+- **Document Upload and Status**  
+  ![Upload](./Screenshot%202025-07-18%20114358.png)
+
+- **Payment Status**  
+  ![Payment](./Screenshot%202025-07-18%20114443.png)
+
+### 👨‍💼 Admin Panel
+
+- **Application Review**  
+  ![Admin Review](./Screenshot%202025-07-18%20114506.png)
+
+- **Verification & Approval**  
+  ![Verify](./Screenshot%202025-07-18%20114546.png)
+
+- **Final List & Dashboard**  
+  ![Final View](./Screenshot%202025-07-18%20114616.png)
+
+- **Student Profile View**  
+  ![Student View](./Screenshot%202025-07-18%20114721.png)
+
+
+
+
+## 📄 License
+
+MIT License
+
+```
+MIT License
+
+Copyright (c) 2025 Yash Garg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+```
+
+---
+
+## 👨‍💻 Authors
+
+* **Yash Garg** – Full Stack Developer
+  [LinkedIn](https://linkedin.com/in/your-profile) | [GitHub](https://github.com/your-profile)
