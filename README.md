@@ -202,31 +202,31 @@ AWS_BUCKET_NAME=your_bucket_name
 Secure student and admin login with token-based HTTP-only cookie auth.
 ![Login Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-04-27%20131607.png)
 
-#### 🏠 Landing / Cover Page
+ #### 📤 S3 Bucket - Document Upload
 Initial landing with call-to-actions for student registration and login.
 ![Landing Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-17%20121841.png)
 
-#### 📊 Admin Dashboard
+ ####  Cover Page
 Powerful admin panel to monitor applications, approve documents, and manage users.
 ![Admin Dashboard](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114358.png)
 
-#### 📤 S3 Bucket - Document Upload
+#### 🏠 Landing  page
 Students securely upload required documents via S3 integration.
 ![Document Upload](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114443.png)
 
-#### 💳 Fee Payment Integration
+ #### 📊 Admin Dashboard
 Students can securely pay admission fees via integrated payment gateway.
 ![Payment Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114506.png)
 
-#### 🧾 Personal & Academic Details
+#### 💳 Fee Payment Integration
 Comprehensive form to fill in personal, academic, and course preferences.
 ![Personal Details](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114546.png)
 
-#### 📌 Application Status Tracker
+#### 🧾 Personal Details
 Students can view progress across all stages: submitted, approved, rejected.
 ![Application Status](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114616.png)
 
-#### ✅ Final Submit & Confirmation
+#### ✅ Final Submit  & Academic Details 
 Final step with full preview and confirmation of submitted application.
 ![Final Submit](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114721.png)
 
