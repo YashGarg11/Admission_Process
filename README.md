@@ -194,28 +194,41 @@ AWS_BUCKET_NAME=your_bucket_name
 * **Monitoring:** GitHub + Logs
 
 ---
-
 ## 🖼 Screenshots
 
 ### 🎓 Student & Admin Views
 
-![Student Dashboard](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-04-27%20131607.png)
+#### 🔐 Login Page
+Secure student and admin login with token-based HTTP-only cookie auth.
+![Login Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-04-27%20131607.png)
 
-![Admin Panel](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-17%20121841.png)
+#### 🏠 Landing / Cover Page
+Initial landing with call-to-actions for student registration and login.
+![Landing Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-17%20121841.png)
 
-![Form Preview](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114358.png)
+#### 📊 Admin Dashboard
+Powerful admin panel to monitor applications, approve documents, and manage users.
+![Admin Dashboard](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114358.png)
 
+#### 📤 S3 Bucket - Document Upload
+Students securely upload required documents via S3 integration.
 ![Document Upload](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114443.png)
 
+#### 💳 Fee Payment Integration
+Students can securely pay admission fees via integrated payment gateway.
 ![Payment Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114506.png)
 
-![Admin Review](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114546.png)
+#### 🧾 Personal & Academic Details
+Comprehensive form to fill in personal, academic, and course preferences.
+![Personal Details](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114546.png)
 
+#### 📌 Application Status Tracker
+Students can view progress across all stages: submitted, approved, rejected.
 ![Application Status](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114616.png)
 
+#### ✅ Final Submit & Confirmation
+Final step with full preview and confirmation of submitted application.
 ![Final Submit](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114721.png)
-
-
 
 
 ## 📄 License
