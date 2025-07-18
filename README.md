@@ -195,35 +195,25 @@ AWS_BUCKET_NAME=your_bucket_name
 
 ---
 
-## 📸 Screenshots
+## 🖼 Screenshots
 
-### 🧍 Student View
+### 🎓 Student & Admin Views
 
-- **Form Fill Steps**  
-  ![Form Step 1](./Screenshot%202025-04-27%20131607.png)
+![Student Dashboard](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-04-27%20131607.png)
 
-- **Dashboard Overview**  
-  ![Dashboard](./Screenshot%202025-07-17%20121841.png)
+![Admin Panel](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-17%20121841.png)
 
-- **Document Upload and Status**  
-  ![Upload](./Screenshot%202025-07-18%20114358.png)
+![Form Preview](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114358.png)
 
-- **Payment Status**  
-  ![Payment](./Screenshot%202025-07-18%20114443.png)
+![Document Upload](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114443.png)
 
-### 👨‍💼 Admin Panel
+![Payment Page](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114506.png)
 
-- **Application Review**  
-  ![Admin Review](./Screenshot%202025-07-18%20114506.png)
+![Admin Review](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114546.png)
 
-- **Verification & Approval**  
-  ![Verify](./Screenshot%202025-07-18%20114546.png)
+![Application Status](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114616.png)
 
-- **Final List & Dashboard**  
-  ![Final View](./Screenshot%202025-07-18%20114616.png)
-
-- **Student Profile View**  
-  ![Student View](./Screenshot%202025-07-18%20114721.png)
+![Final Submit](https://raw.githubusercontent.com/YashGarg11/Admission_Process/main/frontend/app/public/Screenshot%202025-07-18%20114721.png)
 
 
 
