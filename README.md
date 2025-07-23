@@ -266,6 +266,11 @@ THE SOFTWARE.
 
 ---
 
+##Tags
+#mern #mongodb #express #react #nodejs #cloudinary #pdfgeneration #qrcode
+#websockets #gsap #fullstack #collegeportal #admissionsystem #projectshowcase
+#jwt #bootstrap #realtime #authentication #studentproject
+
 ## 👨‍💻 Authors
 
 * **Yash Garg** – Full Stack Developer
